@@ -11,6 +11,7 @@ filetype plugin on
 " Vim-Plug
 call plug#begin('~/.vim/plugged/')
 Plug 'vim-airline/vim-airline'
+Plug 'godlygeek/tabular'
 
 call plug#end()
 
