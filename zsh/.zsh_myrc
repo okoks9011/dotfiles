@@ -1,1 +1,11 @@
+#
+# Add below settings to ~/.zshrc
+#
+# if [ -f ~/.zsh_myrc ]; then
+#	source ~/.zsh_myrc
+# else
+#	echo ".zsh_myrc not found"
+# fi
+#
+
 bindkey -v
