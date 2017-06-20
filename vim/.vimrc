@@ -13,6 +13,10 @@ call plug#begin('~/.vim/plugged/')
 "Plug 'vim-airline/vim-airline'
 "Plug 'godlygeek/tabular'
 Plug 'junegunn/seoul256.vim'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+Plug 'kana/vim-textobj-user'
+Plug 'kana/vim-textobj-entire'
 
 call plug#end()
 
