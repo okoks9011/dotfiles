@@ -23,7 +23,7 @@ call plug#end()
 " ==============================================================================
 " Custom confs
 let mapleader = " "
-nmap <leader>vr :e $MYVIMRC<cr>
+nmap <leader>vr :tabe $MYVIMRC<cr>
 nmap <leader>so :source $MYVIMRC<cr>
 
 set encoding=utf-8
@@ -39,3 +39,10 @@ colo seoul256
 let g:airline_left_sep=''
 let g:airline_right_sep=''
 set fillchars=vert:\ ,fold:-
+
+if has('gui_running')
+  set guioptions-=m
+  set guioptions-=T
+  set guioptions-=L
+  set guioptions-=r
+endif
