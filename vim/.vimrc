@@ -58,7 +58,11 @@ let g:airline_right_sep=''
 set fillchars=vert:\ ,fold:-
 
 if has('gui_running')
-  set guifont=D2Coding\ 13
+  if has('gui_macvim')
+    set guifont=D2Coding:h16
+  else
+    set guifont=D2Coding\ 13
+  endif
   set guioptions-=m
   set guioptions-=T
   set guioptions-=L
