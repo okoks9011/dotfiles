@@ -6,18 +6,19 @@
 " to VIM default setting
 set nocompatible
 filetype plugin on
+" Enhance '%' by Practical vim tips
+runtime  macros/matchit.vim
 
 " ==============================================================================
 " Vim-Plug
 call plug#begin('~/.vim/plugged/')
-"Plug 'vim-airline/vim-airline'
-"Plug 'godlygeek/tabular'
 Plug 'junegunn/seoul256.vim'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-repeat'
 Plug 'kana/vim-textobj-user'
 Plug 'kana/vim-textobj-entire'
+Plug 'mileszs/ack.vim'
 
 call plug#end()
 
@@ -31,9 +32,13 @@ set encoding=utf-8
 syntax on
 set nu
 set laststatus=2
+set listchars=tab:>·,trail:~
+set list
 
 let g:seoul256_background = 236
 colo seoul256
+
+let g:ackprg = 'ag --vimgrep'
 
 " ==============================================================================
 " Practical vim tips
@@ -53,10 +58,6 @@ nnoremap <silent> [A :first<CR>
 
 " ==============================================================================
 " Fix appearance
-let g:airline_left_sep=''
-let g:airline_right_sep=''
-set fillchars=vert:\ ,fold:-
-
 if has('gui_running')
   if has('gui_macvim')
     set guifont=D2Coding:h16
