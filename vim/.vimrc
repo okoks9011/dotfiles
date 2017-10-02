@@ -19,14 +19,15 @@ Plug 'tpope/vim-repeat'
 Plug 'kana/vim-textobj-user'
 Plug 'kana/vim-textobj-entire'
 Plug 'mileszs/ack.vim'
+Plug 'Shougo/vimproc.vim', {'do' : 'make'}
+Plug 'eagletmt/ghcmod-vim'
+Plug 'junegunn/vim-easy-align'
 
 call plug#end()
 
 " ==============================================================================
 " Custom confs
 let mapleader = " "
-nmap <leader>vr :tabe $MYVIMRC<cr>
-nmap <leader>so :source $MYVIMRC<cr>
 
 set encoding=utf-8
 syntax on
@@ -39,6 +40,9 @@ let g:seoul256_background = 236
 colo seoul256
 
 let g:ackprg = 'ag --vimgrep'
+
+xmap ga <Plug>(EasyAlign)
+nmap ga <Plug>(EasyAlign)
 
 " ==============================================================================
 " Practical vim tips
