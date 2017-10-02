@@ -3,3 +3,4 @@
 	name = eazy
 [core]
 	editor = vim
+	excludesfile = /home/okoks9011/.gitignore_global
