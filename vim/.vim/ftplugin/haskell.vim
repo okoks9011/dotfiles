@@ -1,6 +1,7 @@
 set tabstop=2
 set shiftwidth=2
 set expandtab
+set suffixesadd+=.hs
 
 nmap <silent> <leader>ht :GhcModType<cr>
 nmap <silent> <leader>hT :GhcModTypeInsert<cr>

@@ -43,6 +43,7 @@ let g:ackprg = 'ag --vimgrep'
 
 xmap ga <Plug>(EasyAlign)
 nmap ga <Plug>(EasyAlign)
+let $PATH = $PATH . ':' . expand('~/.local/bin')
 
 " ==============================================================================
 " Practical vim tips
