@@ -17,8 +17,8 @@ fi
 # Editors
 #
 
-export EDITOR='vi'
-export VISUAL='vi'
+export EDITOR='vim'
+export VISUAL='vim'
 export PAGER='less'
 
 #
@@ -46,7 +46,7 @@ path=(
   /usr/local/{bin,sbin}
   $HOME/.local/bin
   $path
-  ~/.pyenv/bin
+  $HOME/.pyenv/bin
 )
 
 #
@@ -63,5 +63,3 @@ export LESS='-F -g -i -M -R -S -w -X -z-4'
 if (( $#commands[(i)lesspipe(|.sh)] )); then
   export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
 fi
-
-alias leet=leetcode

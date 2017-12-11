@@ -23,7 +23,7 @@ if (( $+commands[fortune] )); then
 fi
 
 
-# Load pyenv automatically by appending
-# the following to your profile:
+# pyenv
+export PYENV_ROOT="$HOME/.pyenv"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
