@@ -11,3 +11,9 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
 fi
 
 # Customize to your needs...
+
+# alias
+alias e='emacs -nw'
+
+# settings for TRAMP
+[[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ '

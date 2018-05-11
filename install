@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+for pkg in *; do
+  if [[ -d "${pkg}" ]]; then
+    echo "install ${pkg} dotfiles"
+    stow "${pkg}"
+  fi
+done
+
+
+if [[ ! -e "${HOME}/.zprezto" ]]; then
+  echo "Prezto not exists, install it"
+  git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+fi

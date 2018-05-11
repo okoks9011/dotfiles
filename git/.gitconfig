@@ -2,5 +2,6 @@
 	email = okoks9011@gmail.com
 	name = eazy
 [core]
-	editor = vim
 	excludesfile = /home/okoks9011/.gitignore_global
+[credential]
+	helper = cache --timeout 28800

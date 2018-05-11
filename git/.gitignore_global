@@ -1,2 +1,11 @@
-.DS_Store
+.swp
 .*.swp
+.DS_Store
+*~
+\#*\#
+.\#*
+
+TAGS
+GTAGS
+GRTAGS
+GPATH
