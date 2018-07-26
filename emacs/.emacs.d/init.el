@@ -2,6 +2,9 @@
 ;; init.el start
 ;; --------------------------------------------------------------------------
 ;;
+;; for if-let
+(require 'subr-x)
+
 ;; Packages
 ;; --------------------------------------------------------------------------
 
@@ -114,6 +117,21 @@
 ;; ------------------------------
 (setq css-indent-offset 2)
 (setq python-shell-interpreter "python3")
+
+(defun python-pipenv-interpreter-toggle ()
+  "Toggle default python-shell-interpreter value and pipenv run python"
+  (interactive)
+  (if-let ((saved (get 'python-pipenv-interpreter-toggle 'state)))
+      (progn
+        (setq python-shell-interpreter saved
+              python-shell-interpreter-args nil)
+        (put 'python-pipenv-interpreter-toggle 'state nil))
+    (progn
+      (put 'python-pipenv-interpreter-toggle 'state python-shell-interpreter)
+      (setq python-shell-interpreter "pipenv"
+            python-shell-interpreter-args "run python"))))
+(eval-after-load 'python
+  '(define-key python-mode-map (kbd "C-c C-e") 'python-pipenv-interpreter-toggle))
 
 ;; Functional Settings
 ;; ------------------------------
