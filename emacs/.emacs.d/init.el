@@ -144,12 +144,17 @@
 
 (setq custom-file (make-temp-file "emacs-custom"))
 
+(setq ido-everywhere t)
+
 ;; Better Defaults
 ;; ------------------------------
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (setq-default indent-tabs-mode nil)
 (setq backup-directory-alist `(("." . ,(concat user-emacs-directory
                                                "backups"))))
+(setq ido-enable-flex-matching t)
+
+(ido-mode t)
 
 ;; init.el end
 ;; --------------------------------------------------------------------------
