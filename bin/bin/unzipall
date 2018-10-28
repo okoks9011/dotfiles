@@ -1,0 +1,27 @@
+#!/bin/bash
+
+
+extract() {
+    local fullname="$1"
+    local basename="${fullname%%\.*}"
+    yes | unzip "$fullname" -d "$basename"
+
+    for extracted in $basename/*; do
+        echo "$extracted"
+        mv "$extracted" "$basename.${extracted##*\.}"
+    done
+
+    rmdir "$basename"
+    rm "$fullname"
+}
+
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: ${0##*/} [file names]"
+    exit 1
+fi
+
+for file in "$@"; do
+    echo "Extract $file"
+    extract "$file"
+done
