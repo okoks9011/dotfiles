@@ -35,7 +35,8 @@
     peep-dired
     yasnippet
     smex
-    ggtags))
+    ggtags
+    google-c-style))
 
 (dolist (p my-packages)
   (when (not (package-installed-p p))
@@ -141,6 +142,12 @@
             (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
               (ggtags-mode 1))))
 
+;; google-c-style
+(add-hook 'c-mode-common-hook
+          (lambda () (setq c-basic-offset 4)))
+(add-hook 'c-mode-common-hook 'google-set-c-style)
+(add-hook 'c-mode-common-hook 'google-make-newline-indent)
+
 ;;
 ;; Custom Settings
 ;; --------------------------------------------------------------------------
@@ -195,7 +202,6 @@
 (setq css-indent-offset 2)
 (setq js-indent-level 2)
 (setq python-shell-interpreter "python3")
-(setq-default c-basic-offset 4)
 
 (defun python-pipenv-interpreter-toggle ()
   "Toggle default python-shell-interpreter value and pipenv run python"
