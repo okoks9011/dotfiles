@@ -22,7 +22,6 @@
     eshell-git-prompt
     ox-twbs
     expand-region
-    change-inner
     flycheck
     js2-mode
     json-mode
@@ -49,6 +48,15 @@
   (with-temp-buffer
     (insert-file-contents filePath)
     (split-string (buffer-string) "\n" t)))
+
+(defun indent-marked-files ()
+  (interactive)
+  (dolist (file (dired-get-marked-files))
+    (find-file file)
+    (replace-string "\t" "    " nil (point-min) (point-max))
+    (indent-region (point-min) (point-max))
+    (save-buffer)
+    (kill-buffer nil)))
 
 ;;
 ;; Packages Settings
@@ -103,11 +111,6 @@
 ;; expand-region
 (require' expand-region)
 (global-set-key (kbd "C-=") 'er/expand-region)
-
-;; change-inner
-(require 'change-inner)
-(global-set-key (kbd "M-i") 'change-inner)
-(global-set-key (kbd "M-o") 'change-outer)
 
 ;; intero
 (add-hook 'haskell-mode-hook 'intero-mode)
