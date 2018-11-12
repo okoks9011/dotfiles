@@ -35,7 +35,10 @@
     yasnippet
     smex
     ggtags
-    google-c-style))
+    google-c-style
+    clojure-mode
+    rainbow-delimiters
+    paredit))
 
 (dolist (p my-packages)
   (when (not (package-installed-p p))
@@ -150,6 +153,15 @@
           (lambda () (setq c-basic-offset 4)))
 (add-hook 'c-mode-common-hook 'google-set-c-style)
 (add-hook 'c-mode-common-hook 'google-make-newline-indent)
+
+;; rainbow-delimiters
+(add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+
+;; paredit
+(add-hook 'clojure-mode-hook #'paredit-mode)
+(add-hook 'emacs-lisp-mode-hook #'paredit-mode)
+(add-hook 'ielm-mode-hook #'paredit-mode)
 
 ;;
 ;; Custom Settings
