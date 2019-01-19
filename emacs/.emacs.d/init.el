@@ -1,48 +1,18 @@
 ;;
 ;; init.el start
 ;; --------------------------------------------------------------------------
-;;
-;; Packages
-;; --------------------------------------------------------------------------
-
 (require 'package)
 
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.org/packages/") t)
 
 (package-initialize)
-(when (not package-archive-contents)
+(unless package-archive-contents
   (package-refresh-contents))
 
-(defvar my-packages
-  '(color-theme-sanityinc-tomorrow
-    exec-path-from-shell
-    org
-    magit
-    eshell-git-prompt
-    ox-twbs
-    expand-region
-    flycheck
-    js2-mode
-    json-mode
-    web-mode
-    intero
-    yaml-mode
-    dockerfile-mode
-    jedi
-    ag
-    peep-dired
-    yasnippet
-    smex
-    ggtags
-    google-c-style
-    clojure-mode
-    rainbow-delimiters
-    paredit))
-
-(dolist (p my-packages)
-  (when (not (package-installed-p p))
-    (package-install p)))
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+(require 'use-package)
 
 ;;
 ;; Auxiliary functions
@@ -57,111 +27,185 @@
   (dolist (file (dired-get-marked-files))
     (find-file file)
     (replace-string "\t" "    " nil (point-min) (point-max))
+    (delete-trailing-whitespace (point-min) (point-max))
     (indent-region (point-min) (point-max))
     (save-buffer)
     (kill-buffer nil)))
 
 ;;
-;; Packages Settings
+;; Packages
 ;; --------------------------------------------------------------------------
+(when (eq system-type 'darwin)
+  (use-package exec-path-from-shell
+    :ensure t
+    :config
+    (exec-path-from-shell-initialize)))
 
-;; exec-path-from-shell
-(exec-path-from-shell-initialize)
+(use-package color-theme-sanityinc-tomorrow
+  :ensure t
+  :config
+  (load-theme 'sanityinc-tomorrow-bright t))
 
-;; org
-(global-set-key (kbd "C-c l") 'org-store-link)
-(global-set-key (kbd "C-c a") 'org-agenda)
-(global-set-key (kbd "C-c b") 'org-iswitchb)
-(setq org-hide-leading-stars t)
-(setq org-log-done t)
-(setq org-startup-truncated nil)
-(with-eval-after-load 'org
-  (require 'ox-md nil t))
+(use-package org
+  :ensure t
+  :bind
+  (("C-c l" . org-store-link)
+   ("C-c a" . org-agenda))
+  :init
+  (setq org-hide-leading-stars t)
+  (setq org-log-done t)
+  (setq org-startup-truncated nil)
+  (let ((agenda-list-file "~/.agenda"))
+    (when (file-exists-p agenda-list-file)
+      (setq org-agenda-files (read-lines agenda-list-file))))
+  :config
+  (require 'ox-md))
 
-(let ((agenda-list-file "~/.agenda"))
-  (when (file-exists-p agenda-list-file)
-    (setq org-agenda-files (read-lines agenda-list-file))))
+(use-package magit
+  :ensure t
+  :bind
+  (("C-x g" . magit-status)))
 
-;; magit
-(global-set-key (kbd "C-x g") 'magit-status)
+(use-package eshell-git-prompt
+  :ensure t
+  :config
+  (eshell-git-prompt-use-theme 'powerline))
 
-;; eshell-git-prompt
-(eshell-git-prompt-use-theme 'powerline)
+(use-package expand-region
+  :ensure t
+  :bind
+  (("C-=" . 'er/expand-region)))
 
-;; web-mode
-(add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
-(defun my-web-mode-hook ()
+(use-package web-mode
+  :ensure t
+  :init
+  (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
+  (add-hook 'web-mode-hook 'electric-pair-mode)
+  :config
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 2)
   (setq web-mode-code-indent-offset 2))
-(add-hook 'web-mode-hook 'my-web-mode-hook)
-(add-hook 'web-mode-hook 'electric-pair-mode)
 
-;; flycheck
-(require 'flycheck)
-(add-hook 'after-init-hook #'global-flycheck-mode)
-(setq-default flycheck-disabled-checkers
-              (append flycheck-disabled-checkers
-                      '(javascript-jshint)))
-(flycheck-add-mode 'javascript-eslint 'web-mode)
-(setq flycheck-python-flake8-executable "python3")
-(setq flycheck-python-pycompile-executable "python3")
-(setq flycheck-python-pylint-executable "python3")
-(with-eval-after-load 'flycheck
-  (setq flycheck-global-modes '(python-mode web-mode js-mode css-mode))
-  (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+(use-package flycheck
+  :ensure t
+  :init
+  (add-hook 'after-init-hook 'global-flycheck-mode)
+  :config
+  (setq flycheck-python-flake8-executable "python3")
+  (setq flycheck-python-pycompile-executable "python3")
+  (setq flycheck-python-pylint-executable "python3")
+  (flycheck-add-mode 'javascript-eslint 'web-mode)
+  (setq-default flycheck-global-modes '(python-mode web-mode js-mode css-mode))
+  (setq-default flycheck-disabled-checkers '(javascript-jshint)))
 
-;; expand-region
-(require' expand-region)
-(global-set-key (kbd "C-=") 'er/expand-region)
-
-;; intero
-(add-hook 'haskell-mode-hook 'intero-mode)
-(with-eval-after-load 'intero
+(use-package intero
+  :ensure t
+  :requires flycheck
+  :init
+  (add-hook 'haskell-mode-hook 'intero-mode)
+  :config
   (flycheck-add-next-checker 'intero '(warning . haskell-hlint)))
 
-;; jedi
-(setq ac-auto-start nil)
-(with-eval-after-load 'auto-complete
-  (define-key ac-mode-map (kbd "M-/") 'auto-complete))
-(setq jedi:use-shortcuts t)
-(add-hook 'python-mode-hook 'jedi:setup)
+(use-package jedi
+  :ensure t
+  :bind
+  (:map ac-mode-map
+        ("M-/" . auto-complete))
+  :init
+  (setq ac-auto-start nil)
+  (setq jedi:use-shortcuts t)
+  (add-hook 'python-mode-hook 'jedi:setup))
 
-;; peep-dired
-(with-eval-after-load 'dired
-  (define-key dired-mode-map (kbd "P") 'peep-dired))
+(use-package peep-dired
+  :ensure t
+  :bind
+  (:map direc-mode-map
+        ("P" . peep-dired)))
 
-;; yasnippet
-(require 'yasnippet)
-(yas-reload-all)
-(add-hook 'org-mode-hook #'yas-minor-mode)
+(use-package yasnippet
+  :ensure t
+  :init
+  (add-hook 'org-mode-hook 'yas-minor-mode)
+  :config
+  (yas-reload-all))
 
-;; smex
-(smex-initialize)
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
-(global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+(use-package smex
+  :ensure t
+  :bind
+  (("M-x" . smex)
+   ("M-X" . smex-major-mode-commands)
+   ("C-c C-c M-x" . execute-extended-command))
+  :config
+  (smex-initialize))
 
-;; ggtags
-(add-hook 'c-mode-common-hook
+(use-package ggtags
+  :ensure t
+  :init
+  (add-hook 'c-mode-common-hook
           (lambda ()
             (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-              (ggtags-mode 1))))
+              (ggtags-mode 1)))))
 
-;; google-c-style
-(add-hook 'c-mode-common-hook
-          (lambda () (setq c-basic-offset 4)))
-(add-hook 'c-mode-common-hook 'google-set-c-style)
-(add-hook 'c-mode-common-hook 'google-make-newline-indent)
+(use-package google-c-style
+  :ensure t
+  :init
+  (add-hook 'c-mode-common-hook (lambda () (setq c-basic-offset 4)))
+  (add-hook 'c-mode-common-hook 'google-set-c-style)
+  (add-hook 'c-mode-common-hook 'google-make-newline-indent)
+)
 
-;; rainbow-delimiters
-(add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
-(add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+(use-package rainbow-delimiters
+  :ensure t
+  :init
+  (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
+  (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode))
 
-;; paredit
-(add-hook 'clojure-mode-hook #'paredit-mode)
-(add-hook 'emacs-lisp-mode-hook #'paredit-mode)
-(add-hook 'ielm-mode-hook #'paredit-mode)
+(use-package paredit
+  :ensure t
+  :init
+  (add-hook 'clojure-mode-hook 'paredit-mode)
+  (add-hook 'emacs-lisp-mode-hook 'paredit-mode)
+  (add-hook 'ielm-mode-hook 'paredit-mode))
+
+(use-package markdown-mode
+  :ensure t
+  :init
+  (add-to-list 'auto-mode-alist '("\\.md$" . gfm-mode)))
+
+(use-package helm
+  :ensure t
+  :bind
+  (([remap occur] . helm-occur)
+   ([remap list-buffers] . helm-buffers-list)
+   ([remap apropos-command] . helm-apropos))
+  :config
+  (require 'helm-config)
+  (helm-mode 1))
+
+(use-package js2-mode
+  :ensure t)
+
+(use-package json-mode
+  :ensure t)
+
+(use-package yaml-mode
+  :ensure t)
+
+(use-package dockerfile-mode
+  :ensure t)
+
+(use-package go-mode
+  :ensure t)
+
+(use-package clojure-mode
+  :ensure t)
+
+(use-package cider
+  :ensure t)
+
+(use-package helm-ag
+  :ensure t)
+
 
 ;;
 ;; Custom Settings
@@ -180,12 +224,18 @@
          "-RIXF-D2Coding-normal-normal-normal-*-16-*-*-*-d-0-iso10646-1")))
 (when (display-graphic-p)
   (scroll-bar-mode -1)
-  (add-to-list 'default-frame-alist `(font . ,my-font))
+  (set-frame-font my-font nil t)
   (set-fontset-font "fontset-default" '(#xAC00 . #xD7AF) "D2Coding")
   (set-fontset-font "fontset-default" '(#x3131 . #x319E) "D2Coding")
-  (setq initial-frame-alist
-        '((width . 160) (height . 110))))
-
+  (let* ((half-screen-width (/ (x-display-pixel-width) 2))
+         (my-char-cnt 160)
+         (my-left (max 50
+                       (- half-screen-width (* my-char-cnt (frame-char-width)) 50))))
+    (setq initial-frame-alist
+          `((top . 10)
+            (left . ,my-left)
+            (width . ,my-char-cnt)
+            (height . 110)))))
 
 (setq default-korean-keyboard "3")
 (set-language-environment "Korean")
@@ -209,14 +259,13 @@
 
 (setq inhibit-startup-message t)
 
-(load-theme 'sanityinc-tomorrow-bright t)
-
 
 ;; Language specific Settings
 ;; ------------------------------
 (setq css-indent-offset 2)
 (setq js-indent-level 2)
 (setq python-shell-interpreter "python3")
+(add-hook 'python-mode-hook 'electric-pair-mode)
 
 (defun python-pipenv-interpreter-toggle ()
   "Toggle default python-shell-interpreter value and pipenv run python"
@@ -249,13 +298,16 @@
 
 (setenv "LANG" "ko_KR.UTF-8")
 
-(setq ido-everywhere t)
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
+
+;; ido
 (setq confirm-nonexistent-file-or-buffer nil)
 (setq ido-create-new-buffer 'always)
 
+
 ;; Better Defaults
 ;; ------------------------------
-(global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
 (global-set-key (kbd "C-r") 'isearch-backward-regexp)
 (global-set-key (kbd "C-M-s") 'isearch-forward)
