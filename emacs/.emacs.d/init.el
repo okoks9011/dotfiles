@@ -119,7 +119,7 @@
 (use-package peep-dired
   :ensure t
   :bind
-  (:map direc-mode-map
+  (:map dired-mode-map
         ("P" . peep-dired)))
 
 (use-package yasnippet
@@ -128,15 +128,6 @@
   (add-hook 'org-mode-hook 'yas-minor-mode)
   :config
   (yas-reload-all))
-
-(use-package smex
-  :ensure t
-  :bind
-  (("M-x" . smex)
-   ("M-X" . smex-major-mode-commands)
-   ("C-c C-c M-x" . execute-extended-command))
-  :config
-  (smex-initialize))
 
 (use-package ggtags
   :ensure t
@@ -151,8 +142,7 @@
   :init
   (add-hook 'c-mode-common-hook (lambda () (setq c-basic-offset 4)))
   (add-hook 'c-mode-common-hook 'google-set-c-style)
-  (add-hook 'c-mode-common-hook 'google-make-newline-indent)
-)
+  (add-hook 'c-mode-common-hook 'google-make-newline-indent))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -172,15 +162,22 @@
   :init
   (add-to-list 'auto-mode-alist '("\\.md$" . gfm-mode)))
 
-(use-package helm
+(use-package ivy
+  :ensure t
+  :config
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "%d/%d ")
+  (ivy-mode 1))
+
+(use-package swiper
   :ensure t
   :bind
-  (([remap occur] . helm-occur)
-   ([remap list-buffers] . helm-buffers-list)
-   ([remap apropos-command] . helm-apropos))
+  (("C-s" . swiper)))
+
+(use-package counsel
+  :ensure t
   :config
-  (require 'helm-config)
-  (helm-mode 1))
+  (counsel-mode 1))
 
 (use-package js2-mode
   :ensure t)
@@ -203,9 +200,8 @@
 (use-package cider
   :ensure t)
 
-(use-package helm-ag
+(use-package rust-mode
   :ensure t)
-
 
 ;;
 ;; Custom Settings
@@ -301,26 +297,15 @@
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 
-;; ido
-(setq confirm-nonexistent-file-or-buffer nil)
-(setq ido-create-new-buffer 'always)
-
 
 ;; Better Defaults
 ;; ------------------------------
-(global-set-key (kbd "C-s") 'isearch-forward-regexp)
-(global-set-key (kbd "C-r") 'isearch-backward-regexp)
-(global-set-key (kbd "C-M-s") 'isearch-forward)
-(global-set-key (kbd "C-M-r") 'isearch-backward)
 (setq-default indent-tabs-mode nil)
 (setq backup-directory-alist `(("." . ,(concat user-emacs-directory
                                                "backups"))))
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (show-paren-mode 1)
-
-(ido-mode t)
-(setq ido-enable-flex-matching t)
 
 ;; init.el end
 ;; --------------------------------------------------------------------------
