@@ -12,7 +12,8 @@
 
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
-(require 'use-package)
+(eval-when-compile
+  (require 'use-package))
 
 ;;
 ;; Auxiliary functions
@@ -60,6 +61,11 @@
       (setq org-agenda-files (read-lines agenda-list-file))))
   :config
   (require 'ox-md))
+
+(use-package org-bullets
+  :ensure t
+  :init
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
 (use-package magit
   :ensure t
@@ -203,6 +209,7 @@
 (use-package rust-mode
   :ensure t)
 
+
 ;;
 ;; Custom Settings
 ;; --------------------------------------------------------------------------
@@ -215,8 +222,7 @@
         ((and (eq system-type 'gnu/linux)
               (string= (system-name) "archlinux.local"))
          "-RIXF-D2Coding-normal-normal-normal-*-32-*-*-*-d-0-iso10646-1")
-        ((and (eq system-type 'gnu/linux)
-              (string-prefix-p "fedora" (system-name)))
+        ((eq system-type 'gnu/linux)
          "-RIXF-D2Coding-normal-normal-normal-*-16-*-*-*-d-0-iso10646-1")))
 (when (display-graphic-p)
   (scroll-bar-mode -1)
