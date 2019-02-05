@@ -185,6 +185,11 @@
   :config
   (counsel-mode 1))
 
+(use-package smex
+  :ensure t
+  :config
+  (smex-initialize))
+
 (use-package js2-mode
   :ensure t)
 
