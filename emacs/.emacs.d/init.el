@@ -5,6 +5,8 @@
 
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.org/packages/") t)
+(add-to-list 'package-archives
+             '("org" . "http://orgmode.org/elpa/") t)
 
 (package-initialize)
 (unless package-archive-contents
@@ -48,7 +50,8 @@
   (load-theme 'sanityinc-tomorrow-bright t))
 
 (use-package org
-  :ensure t
+  :ensure org-plus-contrib
+  :defer 7
   :bind
   (("C-c l" . org-store-link)
    ("C-c a" . org-agenda))
@@ -247,6 +250,7 @@
 (setq default-korean-keyboard "3")
 (set-language-environment "Korean")
 (prefer-coding-system 'utf-8)
+(setq system-time-locale "C")
 
 (global-linum-mode t)
 (unless (display-graphic-p)
@@ -302,6 +306,8 @@
 (setq tramp-default-method "ssh")
 
 (setq custom-file (make-temp-file "emacs-custom"))
+
+(setq explicit-shell-file-name "/bin/bash")
 
 (setenv "LANG" "ko_KR.UTF-8")
 
