@@ -59,6 +59,7 @@
   (setq org-hide-leading-stars t)
   (setq org-log-done t)
   (setq org-startup-truncated nil)
+  (setq org-export-with-sub-superscripts nil)
   (let ((agenda-list-file "~/.agenda"))
     (when (file-exists-p agenda-list-file)
       (setq org-agenda-files (read-lines agenda-list-file))))
