@@ -277,7 +277,7 @@
 (setq css-indent-offset 2)
 (setq js-indent-level 2)
 (setq python-shell-interpreter "python3")
-(add-hook 'python-mode-hook 'electric-pair-mode)
+(add-hook 'python-mode-hook 'electric-pair-local-mode)
 
 (defun python-pipenv-interpreter-toggle ()
   "Toggle default python-shell-interpreter value and pipenv run python"
