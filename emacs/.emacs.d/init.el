@@ -30,7 +30,7 @@
   (dolist (file (dired-get-marked-files))
     (find-file file)
     (replace-string "\t" "    " nil (point-min) (point-max))
-    (delete-trailing-whitespace (point-min) (point-max))
+    (delete-trailing-whitespace (point-min))
     (indent-region (point-min) (point-max))
     (save-buffer)
     (kill-buffer nil)))
