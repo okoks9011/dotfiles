@@ -73,3 +73,11 @@ if [[ -s "$HOME/.pyenv" ]]; then
     export pyenv_root="$HOME/.pyenv"
     eval "$(pyenv init -)"
 fi
+
+#
+# nvm
+#
+if [[ -s "$HOME/.nvm" ]]; then
+    export NVM_DIR="$HOME/.nvm"
+    \. "$NVM_DIR/nvm.sh"
+fi
