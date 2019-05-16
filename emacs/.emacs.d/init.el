@@ -35,6 +35,9 @@
     (save-buffer)
     (kill-buffer nil)))
 
+(defun random-order ()
+  (random 1000))
+
 ;;
 ;; Packages
 ;; --------------------------------------------------------------------------
@@ -51,6 +54,7 @@
 
 (use-package org
   :ensure org-plus-contrib
+  :after ox-gfm
   :defer 7
   :bind
   (("C-c l" . org-store-link)
@@ -64,7 +68,7 @@
     (when (file-exists-p agenda-list-file)
       (setq org-agenda-files (read-lines agenda-list-file))))
   :config
-  (require 'ox-md))
+  (add-to-list 'org-file-apps '(directory . emacs)))
 
 (use-package org-bullets
   :ensure t
@@ -194,6 +198,9 @@
   :config
   (smex-initialize))
 
+(use-package ox-gfm
+  :ensure t)
+
 (use-package js2-mode
   :ensure t)
 
@@ -314,6 +321,8 @@
 
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
+
+(global-set-key [remap dabbrev-expand] 'hippie-expand)
 
 
 ;; Better Defaults
