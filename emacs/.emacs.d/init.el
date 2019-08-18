@@ -283,7 +283,7 @@
 ;; ------------------------------
 (setq css-indent-offset 2)
 (setq js-indent-level 2)
-(setq python-shell-interpreter "python3")
+(setq python-shell-interpreter "python")
 (add-hook 'python-mode-hook 'electric-pair-local-mode)
 
 (defun python-pipenv-interpreter-toggle ()
