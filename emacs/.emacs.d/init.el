@@ -35,8 +35,15 @@
     (save-buffer)
     (kill-buffer nil)))
 
-(defun random-order ()
-  (random 1000))
+(defun pyvenv-autoload ()
+  "Automatically activates pyvenv version if .venv directory exists."
+  (f-traverse-upwards
+   (lambda (path)
+     (let ((venv-path (f-expand ".venv" path)))
+       (if (f-exists? venv-path)
+           (progn
+             (pyvenv-activate venv-path)
+             t))))))
 
 ;;
 ;; Packages
@@ -108,9 +115,22 @@
   (setq flycheck-python-flake8-executable "python3")
   (setq flycheck-python-pycompile-executable "python3")
   (setq flycheck-python-pylint-executable "python3")
+  (setq flycheck-checkers
+        (cons 'python-pylint (remove 'python-pylint flycheck-checkers)))
   (flycheck-add-mode 'javascript-eslint 'web-mode)
   (setq-default flycheck-global-modes '(python-mode web-mode js-mode css-mode))
   (setq-default flycheck-disabled-checkers '(javascript-jshint)))
+
+(use-package pyvenv
+  :ensure t
+  :init
+  (add-hook 'pyvenv-post-activate-hooks
+            (lambda ()
+              (setq flycheck-disabled-checkers
+                    (default-value 'flycheck-disabled-checkers)))))
+
+(use-package f
+  :ensure t)
 
 (use-package intero
   :ensure t
@@ -198,6 +218,11 @@
   :config
   (smex-initialize))
 
+(use-package avy
+  :ensure t
+  :bind
+  (("C-:" . avy-goto-char)))
+
 (use-package ox-gfm
   :ensure t)
 
@@ -223,6 +248,9 @@
   :ensure t)
 
 (use-package rust-mode
+  :ensure t)
+
+(use-package racket-mode
   :ensure t)
 
 
@@ -283,8 +311,9 @@
 ;; ------------------------------
 (setq css-indent-offset 2)
 (setq js-indent-level 2)
-(setq python-shell-interpreter "python")
+(setq python-shell-interpreter "python3")
 (add-hook 'python-mode-hook 'electric-pair-local-mode)
+(add-hook 'python-mode-hook 'pyvenv-autoload)
 
 (defun python-pipenv-interpreter-toggle ()
   "Toggle default python-shell-interpreter value and pipenv run python"
@@ -325,6 +354,16 @@
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
 
 
+;; Specific
+;; ------------------------------
+(setq custom-el-path "~/.emacs.d/specific")
+(add-to-list 'load-path custom-el-path)
+(if (file-directory-p custom-el-path)
+    (dolist (custom-el (directory-files custom-el-path))
+      (if (string-suffix-p ".el" custom-el)
+          (load custom-el))))
+
+
 ;; Better Defaults
 ;; ------------------------------
 (setq-default indent-tabs-mode nil)
@@ -333,6 +372,12 @@
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (show-paren-mode 1)
+
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+(autoload 'zap-up-to-char "misc"
+  "Kill up to, but not including ARGth occurrence of CHAR." t)
+(global-set-key (kbd "M-z") 'zap-up-to-char)
 
 ;; init.el end
 ;; --------------------------------------------------------------------------
