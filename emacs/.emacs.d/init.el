@@ -244,8 +244,8 @@
 (use-package clojure-mode
   :ensure t)
 
-(use-package cider
-  :ensure t)
+;; (use-package cider
+;;   :ensure t)
 
 (use-package rust-mode
   :ensure t)
