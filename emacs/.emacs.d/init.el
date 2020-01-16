@@ -335,11 +335,6 @@
 
 ;; Functional Settings
 ;; ------------------------------
-(defun eshell-new ()
-  "Open a new instance of eshell."
-  (interactive)
-  (eshell 'N))
-
 (setq tramp-default-method "ssh")
 
 (setq custom-file (make-temp-file "emacs-custom"))

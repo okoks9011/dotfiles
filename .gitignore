@@ -10,3 +10,6 @@ emacs/.emacs.d/.python-environments/*
 emacs/.emacs.d/bookmarks
 emacs/.emacs.d/recentf
 emacs/.emacs.d/tramp
+emacs/.emacs.d/session.*
+emacs/.emacs.d/transient
+emacs/.emacs.d/url
