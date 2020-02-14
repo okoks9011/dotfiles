@@ -71,7 +71,7 @@ fi
 #
 if [[ -s "$HOME/.pyenv" ]]; then
     export pyenv_root="$HOME/.pyenv"
-    eval "$(pyenv init -)"
+    eval "$(pyenv init - --no-rehash)"
 fi
 
 #
