@@ -81,3 +81,10 @@ if [[ -s "$HOME/.nvm" ]]; then
     export NVM_DIR="$HOME/.nvm"
     \. "$NVM_DIR/nvm.sh"
 fi
+
+#
+# poetry
+#
+if [[ -s "$HOME/.poetry" ]]; then
+    export PATH="$HOME/.poetry/bin:$PATH"
+fi
