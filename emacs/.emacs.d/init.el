@@ -45,6 +45,30 @@
              (pyvenv-activate venv-path)
              t))))))
 
+(defun kickstart-get-candiname (f-attrib)
+  (car (split-string (car f-attrib) "-")))
+
+(defun kickstart-rename-files ()
+  (interactive)
+  (let ((all-files (directory-files-and-attributes "." nil "-.*\.txt$"))
+        )
+  (dolist (candi (seq-group-by 'kickstart-get-candiname all-files))
+    (let* ((candi-name (car candi))
+           (candi-files (cdr candi))
+           (sorted-files (cl-sort candi-files
+                                             'time-less-p
+                                             :key (lambda (x) (nth 5 x))))
+           (numbered-files (cl-mapcar 'cons
+                                      (number-sequence 0 (length candi-files))
+                                      sorted-files)))
+      (dolist (numbered-file numbered-files)
+        (let ((old-name (nth 1 numbered-file))
+              (new-name (concat
+                         (string (+ ?A (car numbered-file)) ?.)
+                         candi-name
+                         ".cc")))
+          (rename-file old-name new-name)))))))
+
 ;;
 ;; Packages
 ;; --------------------------------------------------------------------------
