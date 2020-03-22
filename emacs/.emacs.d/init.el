@@ -152,6 +152,7 @@
 
 (use-package peep-dired
   :ensure t
+  :after (dired)
   :bind
   (:map dired-mode-map
         ("P" . peep-dired)))
