@@ -136,22 +136,19 @@
   :init
   (add-hook 'after-init-hook 'global-flycheck-mode)
   :config
-  (setq flycheck-python-flake8-executable "python3")
-  (setq flycheck-python-pycompile-executable "python3")
-  (setq flycheck-python-pylint-executable "python3")
   (setq flycheck-checkers
         (cons 'python-pylint (remove 'python-pylint flycheck-checkers)))
   (flycheck-add-mode 'javascript-eslint 'web-mode)
   (setq-default flycheck-global-modes '(python-mode web-mode js-mode css-mode))
   (setq-default flycheck-disabled-checkers '(javascript-jshint)))
 
-(use-package pyvenv
+(use-package elpy
   :ensure t
   :init
-  (add-hook 'pyvenv-post-activate-hooks
-            (lambda ()
-              (setq flycheck-disabled-checkers
-                    (default-value 'flycheck-disabled-checkers)))))
+  (elpy-enable)
+  :config
+  (setq elpy-modules
+        (remove 'elpy-module-flymake elpy-modules)))
 
 (use-package f
   :ensure t)
@@ -163,16 +160,6 @@
   (add-hook 'haskell-mode-hook 'intero-mode)
   :config
   (flycheck-add-next-checker 'intero '(warning . haskell-hlint)))
-
-(use-package jedi
-  :ensure t
-  :bind
-  (:map ac-mode-map
-        ("M-/" . auto-complete))
-  :init
-  (setq ac-auto-start nil)
-  (setq jedi:use-shortcuts t)
-  (add-hook 'python-mode-hook 'jedi:setup))
 
 (use-package peep-dired
   :ensure t
@@ -269,8 +256,8 @@
 (use-package clojure-mode
   :ensure t)
 
-;; (use-package cider
-;;   :ensure t)
+(use-package cider
+  :ensure t)
 
 (use-package rust-mode
   :ensure t)
@@ -336,8 +323,6 @@
 ;; ------------------------------
 (setq css-indent-offset 2)
 (setq js-indent-level 2)
-(setq python-shell-interpreter "python3")
-(add-hook 'python-mode-hook 'electric-pair-local-mode)
 (add-hook 'python-mode-hook 'pyvenv-autoload)
 
 (defun python-pipenv-interpreter-toggle ()

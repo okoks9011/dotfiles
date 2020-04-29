@@ -13,3 +13,5 @@ emacs/.emacs.d/tramp
 emacs/.emacs.d/session.*
 emacs/.emacs.d/transient
 emacs/.emacs.d/url
+emacs/.emacs.d/elpy
+emacs/.emacs.d/org-clock-save.el
