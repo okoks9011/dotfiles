@@ -1,0 +1,75 @@
+{
+  "title": "For Hangul - Alphabet Change",
+  "rules": [
+    {
+      "description": "Change shift + space to cmd + space (without emacs)",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "spacebar",
+            "modifiers": {
+              "mandatory": [
+                "shift"
+              ]
+            }
+          },
+          "to": [
+            {
+              "key_code": "spacebar",
+              "modifiers": [
+                "command"
+              ]
+            }
+          ],
+          "conditions": [
+            {
+              "type": "frontmost_application_unless",
+              "bundle_identifiers": [
+                "^org\\.gnu\\.Emacs$"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "shift + space enable english mode in emacs",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "spacebar",
+            "modifiers": {
+              "mandatory": [
+                "shift"
+              ]
+            }
+          },
+          "to": [
+            {
+              "select_input_source": {
+                "language": "^en$"
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "frontmost_application_if",
+              "bundle_identifiers": [
+                "^org\\.gnu\\.Emacs$"
+              ]
+            },
+            {
+              "type": "input_source_if",
+              "input_sources": [
+                {
+                  "language": "^ko$"
+                }
+              ]
+            }          ]
+        }
+      ]
+    }
+  ]
+}
