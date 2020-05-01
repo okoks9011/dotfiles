@@ -262,8 +262,8 @@
 (use-package rust-mode
   :ensure t)
 
-(use-package racket-mode
-  :ensure t)
+(use-package elixir-mode
+  :ensure)
 
 
 ;;
