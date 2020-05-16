@@ -238,6 +238,9 @@
 (use-package ox-gfm
   :ensure t)
 
+(use-package sudo-edit
+  :ensure t)
+
 (use-package js2-mode
   :ensure t)
 
