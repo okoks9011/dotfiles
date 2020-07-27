@@ -43,6 +43,7 @@
        (if (f-exists? venv-path)
            (progn
              (pyvenv-activate venv-path)
+             (setq flycheck-python-flake8-executable (concat venv-path "/bin/flake8"))
              t))))))
 
 (defun kickstart-get-candiname (f-attrib)
@@ -252,21 +253,6 @@
 
 (use-package dockerfile-mode
   :ensure t)
-
-(use-package go-mode
-  :ensure t)
-
-(use-package clojure-mode
-  :ensure t)
-
-(use-package cider
-  :ensure t)
-
-(use-package rust-mode
-  :ensure t)
-
-(use-package elixir-mode
-  :ensure)
 
 
 ;;
