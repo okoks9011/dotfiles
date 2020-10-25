@@ -88,3 +88,10 @@ fi
 if [[ -s "$HOME/.poetry" ]]; then
     export PATH="$HOME/.poetry/bin:$PATH"
 fi
+
+#
+# spark
+#
+if [[ -s "$HOME/spark" ]]; then
+    export PATH="$HOME/spark/bin:$PATH"
+fi

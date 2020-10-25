@@ -1,0 +1,4 @@
+track_id=$(xinput | grep TrackPoint | grep pointer | grep -oP "id=\K\d+")
+if [[ -n $track_id ]]; then
+    xinput --set-prop "${track_id}" "libinput Accel Speed" -0.5
+fi
