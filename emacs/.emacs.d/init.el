@@ -29,9 +29,10 @@
   (interactive)
   (dolist (file (dired-get-marked-files))
     (find-file file)
-    (replace-string "\t" "    " nil (point-min) (point-max))
-    (delete-trailing-whitespace (point-min))
-    (indent-region (point-min) (point-max))
+    (delete-trailing-whitespace)
+    (unless (s-suffix? ".py" file)
+      (replace-string "\t" "    " nil (point-min) (point-max))
+      (indent-region (point-min) (point-max)))
     (save-buffer)
     (kill-buffer nil)))
 
