@@ -95,3 +95,11 @@ fi
 if [[ -s "$HOME/spark" ]]; then
     export PATH="$HOME/spark/bin:$PATH"
 fi
+
+#
+# ARM brew
+#
+if [[ -s "/opt/homebrew/bin" ]]; then
+    export PATH="/opt/homebrew/bin:$PATH"
+    alias ibrew="arch -x86_64 /usr/local/bin/brew"
+fi
