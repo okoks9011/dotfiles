@@ -103,3 +103,17 @@ if [[ -s "/opt/homebrew/bin" ]]; then
     export PATH="/opt/homebrew/bin:$PATH"
     alias ibrew="arch -x86_64 /usr/local/bin/brew"
 fi
+
+#
+# for gcloud
+#
+if [[ -s "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk" ]]; then
+    source /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc
+fi
+
+#
+# qt5
+#
+if [[ -s "/opt/homebrew/opt/qt/" ]]; then
+    export PATH="/opt/homebrew/opt/qt/bin:$PATH"
+fi

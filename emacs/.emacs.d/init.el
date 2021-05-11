@@ -155,13 +155,13 @@
 (use-package f
   :ensure t)
 
-(use-package intero
-  :ensure t
-  :requires flycheck
-  :init
-  (add-hook 'haskell-mode-hook 'intero-mode)
-  :config
-  (flycheck-add-next-checker 'intero '(warning . haskell-hlint)))
+;; (use-package intero
+;;   :ensure t
+;;   :requires flycheck
+;;   :init
+;;   (add-hook 'haskell-mode-hook 'intero-mode)
+;;   :config
+;;   (flycheck-add-next-checker 'intero '(warning . haskell-hlint)))
 
 (use-package peep-dired
   :ensure t
@@ -253,6 +253,9 @@
   :ensure t)
 
 (use-package dockerfile-mode
+  :ensure t)
+
+(use-package go-mode
   :ensure t)
 
 
