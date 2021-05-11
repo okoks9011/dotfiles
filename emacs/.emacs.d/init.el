@@ -229,6 +229,12 @@
   :bind
   (("C-:" . avy-goto-char)))
 
+(use-package go-mode
+  :ensure t
+  :init
+  (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
+  (add-hook 'before-save-hook 'gofmt-before-save))
+
 (use-package ox-gfm
   :ensure t)
 
@@ -245,9 +251,6 @@
   :ensure t)
 
 (use-package dockerfile-mode
-  :ensure t)
-
-(use-package go-mode
   :ensure t)
 
 
@@ -300,6 +303,7 @@
         newline
         empty))
 (global-whitespace-mode 1)
+(set-face-attribute 'whitespace-tab nil :background "gray15" :foreground "gray40")
 
 (setq inhibit-startup-message t)
 
