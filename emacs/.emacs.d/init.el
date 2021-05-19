@@ -235,6 +235,13 @@
   (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
   (add-hook 'before-save-hook 'gofmt-before-save))
 
+(use-package dash-at-point
+  :ensure t
+  :bind
+  (("C-c d" . dash-at-point))
+  :init
+  (add-hook 'go-mode-hook (lambda () (setq dash-at-point-docset "go"))))
+
 (use-package ox-gfm
   :ensure t)
 
