@@ -250,7 +250,6 @@
   :init
   (setq lsp-keymap-prefix "C-c p")
   (setq lsp-file-watch-threshold 4000)
-  ;; (setq lsp-eldoc-enable-hover nil)
   :hook
   ((go-mode . lsp))
   :commands
