@@ -112,8 +112,8 @@ if [[ -s "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk" ]]; then
 fi
 
 #
-# qt5
+# for go bin
 #
-if [[ -s "/opt/homebrew/opt/qt/" ]]; then
-    export PATH="/opt/homebrew/opt/qt/bin:$PATH"
+if [[ -s "$HOME/go/bin" ]]; then
+    export PATH="$PATH:$HOME/go/bin"
 fi
