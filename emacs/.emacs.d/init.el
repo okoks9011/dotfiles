@@ -54,22 +54,22 @@
   (interactive)
   (let ((all-files (directory-files-and-attributes "." nil "-.*\.txt$"))
         )
-  (dolist (candi (seq-group-by 'kickstart-get-candiname all-files))
-    (let* ((candi-name (car candi))
-           (candi-files (cdr candi))
-           (sorted-files (cl-sort candi-files
-                                             'time-less-p
-                                             :key (lambda (x) (nth 5 x))))
-           (numbered-files (cl-mapcar 'cons
-                                      (number-sequence 0 (length candi-files))
-                                      sorted-files)))
-      (dolist (numbered-file numbered-files)
-        (let ((old-name (nth 1 numbered-file))
-              (new-name (concat
-                         (string (+ ?A (car numbered-file)) ?.)
-                         candi-name
-                         ".cc")))
-          (rename-file old-name new-name)))))))
+    (dolist (candi (seq-group-by 'kickstart-get-candiname all-files))
+      (let* ((candi-name (car candi))
+             (candi-files (cdr candi))
+             (sorted-files (cl-sort candi-files
+                                    'time-less-p
+                                    :key (lambda (x) (nth 5 x))))
+             (numbered-files (cl-mapcar 'cons
+                                        (number-sequence 0 (length candi-files))
+                                        sorted-files)))
+        (dolist (numbered-file numbered-files)
+          (let ((old-name (nth 1 numbered-file))
+                (new-name (concat
+                           (string (+ ?A (car numbered-file)) ?.)
+                           candi-name
+                           ".cc")))
+            (rename-file old-name new-name)))))))
 
 ;;
 ;; Packages
@@ -173,9 +173,9 @@
   :ensure t
   :init
   (add-hook 'c-mode-common-hook
-          (lambda ()
-            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-              (ggtags-mode 1)))))
+            (lambda ()
+              (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+                (ggtags-mode 1)))))
 
 (use-package google-c-style
   :ensure t
@@ -233,6 +233,9 @@
   :ensure t
   :init
   (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
+  (add-hook 'go-mode-hook (lambda ()
+                            (setq-local whitespace-style
+                                        (remove 'tabs whitespace-style))))
   (add-hook 'before-save-hook 'gofmt-before-save))
 
 (use-package dash-at-point
@@ -241,6 +244,34 @@
   (("C-c d" . dash-at-point))
   :init
   (add-hook 'go-mode-hook (lambda () (setq dash-at-point-docset "go"))))
+
+(use-package lsp-mode
+  :ensure t
+  :init
+  (setq lsp-keymap-prefix "C-c p")
+  (setq lsp-file-watch-threshold 4000)
+  ;; (setq lsp-eldoc-enable-hover nil)
+  :hook
+  ((go-mode . lsp))
+  :commands
+  lsp)
+
+;; (use-package lsp-ui
+;;   :ensure t
+;;   :commands lsp-ui-mode)
+
+(use-package  lsp-ivy
+  :ensure t
+  :commands lsp-ivy-workspace-symbol)
+
+(use-package lsp-treemacs
+  :ensure t
+  :commands lsp-treemacs-erros-list)
+
+(use-package dumb-jump
+  :ensure t
+  :init
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
 (use-package ox-gfm
   :ensure t)
@@ -258,6 +289,12 @@
   :ensure t)
 
 (use-package dockerfile-mode
+  :ensure t)
+
+(use-package protobuf-mode
+  :ensure t)
+
+(use-package gotest
   :ensure t)
 
 
@@ -278,6 +315,7 @@
 (when (display-graphic-p)
   (scroll-bar-mode -1)
   (set-frame-font my-font nil t)
+  (set-face-attribute 'fixed-pitch nil :family "D2Coding")
   (set-fontset-font "fontset-default" '(#xAC00 . #xD7AF) "D2Coding")
   (set-fontset-font "fontset-default" '(#x3131 . #x319E) "D2Coding")
   (let* ((half-screen-width (/ (x-display-pixel-width) 2))
@@ -310,7 +348,6 @@
         newline
         empty))
 (global-whitespace-mode 1)
-(set-face-attribute 'whitespace-tab nil :background "gray15" :foreground "gray40")
 
 (setq inhibit-startup-message t)
 
