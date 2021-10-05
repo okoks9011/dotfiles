@@ -236,6 +236,7 @@
   (add-hook 'go-mode-hook (lambda ()
                             (setq-local whitespace-style
                                         (remove 'tabs whitespace-style))))
+  (setq gofmt-command "goimports")
   (add-hook 'before-save-hook 'gofmt-before-save))
 
 (use-package dash-at-point
