@@ -273,6 +273,13 @@
   :init
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
+(use-package fsharp-mode
+  :defer t
+  :ensure t)
+
+(use-package eglot-fsharp
+  :ensure t)
+
 (use-package ox-gfm
   :ensure t)
 
@@ -329,6 +336,7 @@
             (height . 110)))))
 
 (setq default-korean-keyboard "3")
+(setq default-buffer-file-coding-system 'utf-8-unix)
 (set-language-environment "Korean")
 (prefer-coding-system 'utf-8)
 (setq system-time-locale "C")
@@ -412,6 +420,8 @@
 (show-paren-mode 1)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
+(global-set-key (kbd "C-x m") 'eshell)
+(global-set-key (kbd "C-x M-m") 'shell)
 
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)

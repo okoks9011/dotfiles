@@ -117,3 +117,10 @@ fi
 if [[ -s "$HOME/go/bin" ]]; then
     export PATH="$PATH:$HOME/go/bin"
 fi
+
+#
+# for dotnet bin
+#
+if [[ -s "$HOME/.dotnet/tools" ]]; then
+    export PATH="$PATH:$HOME/.dotnet/tools"
+fi
