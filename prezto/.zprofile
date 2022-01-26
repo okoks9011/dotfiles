@@ -124,3 +124,10 @@ fi
 if [[ -s "$HOME/.dotnet/tools" ]]; then
     export PATH="$PATH:$HOME/.dotnet/tools"
 fi
+
+#
+# for ghcup
+#
+if [[ -f "/Users/okoks9011/.ghcup/env" ]]; then
+    source "/Users/okoks9011/.ghcup/env" # ghcup-env
+fi

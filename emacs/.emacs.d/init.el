@@ -278,7 +278,9 @@
   :ensure t)
 
 (use-package eglot-fsharp
-  :ensure t)
+  :ensure t
+  :init
+  (add-hook 'fsharp-mode-hook 'eglot-ensure))
 
 (use-package ox-gfm
   :ensure t)
@@ -336,7 +338,6 @@
             (height . 110)))))
 
 (setq default-korean-keyboard "3")
-(setq default-buffer-file-coding-system 'utf-8-unix)
 (set-language-environment "Korean")
 (prefer-coding-system 'utf-8)
 (setq system-time-locale "C")
