@@ -14,6 +14,7 @@ fi
 
 # alias
 alias e='emacs -nw'
+alias cabal='TERM=dumb cabal'
 
 # settings for TRAMP
 [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ '

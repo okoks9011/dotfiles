@@ -5,8 +5,6 @@
 
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.org/packages/") t)
-(add-to-list 'package-archives
-             '("org" . "http://orgmode.org/elpa/") t)
 
 (package-initialize)
 (unless package-archive-contents
@@ -86,7 +84,7 @@
   (load-theme 'sanityinc-tomorrow-bright t))
 
 (use-package org
-  :ensure org-plus-contrib
+  :ensure t
   :after ox-gfm
   :defer 7
   :bind
@@ -166,6 +164,7 @@
   :ensure t
   :init
   (add-hook 'org-mode-hook 'yas-minor-mode)
+  (add-hook 'haskell-mode-hook 'yas-minor-mode)
   :config
   (yas-reload-all))
 
@@ -252,13 +251,14 @@
   (setq lsp-keymap-prefix "C-c p")
   (setq lsp-file-watch-threshold 4000)
   :hook
-  ((go-mode . lsp))
+  ((go-mode . lsp)
+   (haskell-mode . lsp))
   :commands
   lsp)
 
-;; (use-package lsp-ui
-;;   :ensure t
-;;   :commands lsp-ui-mode)
+(use-package lsp-ui
+  :ensure t
+  :commands lsp-ui-mode)
 
 (use-package  lsp-ivy
   :ensure t
@@ -277,10 +277,12 @@
   :defer t
   :ensure t)
 
-(use-package eglot-fsharp
+(use-package lsp-haskell
   :ensure t
-  :init
-  (add-hook 'fsharp-mode-hook 'eglot-ensure))
+  :config
+  ;; (custom-set-variables
+  ;;  '(lsp-haskell-formatting-provider "stylish-haskell"))
+)
 
 (use-package ox-gfm
   :ensure t)
