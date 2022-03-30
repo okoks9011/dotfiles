@@ -131,3 +131,10 @@ fi
 if [[ -f "/Users/okoks9011/.ghcup/env" ]]; then
     source "/Users/okoks9011/.ghcup/env" # ghcup-env
 fi
+
+#
+# for cargo
+#
+if [[ -f "$HOME/.cargo/env" ]]; then
+    source "$HOME/.cargo/env"
+fi

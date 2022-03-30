@@ -165,6 +165,7 @@
   :init
   (add-hook 'org-mode-hook 'yas-minor-mode)
   (add-hook 'haskell-mode-hook 'yas-minor-mode)
+  (add-hook 'go-mode-hook 'yas-minor-mode)
   :config
   (yas-reload-all))
 
