@@ -138,3 +138,10 @@ fi
 if [[ -f "$HOME/.cargo/env" ]]; then
     source "$HOME/.cargo/env"
 fi
+
+#
+# for flutter
+#
+if [[ -s "$HOME/flutter/bin" ]]; then
+    export PATH="$PATH:$HOME/flutter/bin"
+fi

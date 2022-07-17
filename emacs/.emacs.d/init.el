@@ -147,6 +147,7 @@
   :init
   (elpy-enable)
   :config
+  (setq elpy-rpc-python-command "python3")
   (setq elpy-modules
         (remove 'elpy-module-flymake elpy-modules)))
 
@@ -253,7 +254,8 @@
   (setq lsp-file-watch-threshold 4000)
   :hook
   ((go-mode . lsp)
-   (haskell-mode . lsp))
+   (haskell-mode . lsp)
+   (fsharp-mode . lsp))
   :commands
   lsp)
 
@@ -274,16 +276,20 @@
   :init
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
-(use-package fsharp-mode
-  :defer t
-  :ensure t)
+(use-package rust-mode
+  :ensure t
+  :config
+  (setq rust-format-on-save t))
 
 (use-package lsp-haskell
   :ensure t
   :config
-  ;; (custom-set-variables
-  ;;  '(lsp-haskell-formatting-provider "stylish-haskell"))
-)
+  (custom-set-variables
+   '(lsp-haskell-formatting-provider "stylish-haskell"))
+  )
+
+(use-package haskell-mode
+  :ensure t)
 
 (use-package ox-gfm
   :ensure t)
@@ -307,6 +313,12 @@
   :ensure t)
 
 (use-package gotest
+  :ensure t)
+
+(use-package restclient
+  :ensure t)
+
+(use-package lsp-dart
   :ensure t)
 
 
