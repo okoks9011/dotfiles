@@ -288,6 +288,10 @@
    '(lsp-haskell-formatting-provider "stylish-haskell"))
   )
 
+(use-package fsharp-mode
+  :defer t
+  :ensure t)
+
 (use-package haskell-mode
   :ensure t)
 
@@ -408,7 +412,7 @@
 
 (setq explicit-shell-file-name "/bin/bash")
 
-(setenv "LANG" "ko_KR.UTF-8")
+;; (setenv "LANG" "ko_KR.UTF-8")
 
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
