@@ -17,3 +17,5 @@ emacs/.emacs.d/elpy
 emacs/.emacs.d/org-clock-save.el
 emacs/.emacs.d/auto-save-list
 emacs/.emacs.d/backups
+/emacs/.emacs.d/.dap-breakpoints
+/emacs/.emacs.d/.lsp-session-v1
