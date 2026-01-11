@@ -297,7 +297,7 @@
   :straight t
   :init
   (setq lsp-keymap-prefix "C-c p")
-  (setq lsp-file-watch-threshold 9000)
+  (setq lsp-file-watch-threshold 10000)
   ;; (setq lsp-eldoc-enable-hover nil)
   :hook
   ((go-mode . lsp)
@@ -420,6 +420,14 @@
   :straight t
   :bind (("C-c <C-return>" . yafolding-toggle-element)))
 
+(use-package restclient
+  :straight t
+  :init
+  (add-to-list 'auto-mode-alist '("\\.rest$" . restclient-mode)))
+
+(use-package dune
+  :straight t)
+
 (use-package pdf-tools
   :straight t)
 
@@ -448,9 +456,6 @@
   :straight t)
 
 (use-package gotest
-  :straight t)
-
-(use-package restclient
   :straight t)
 
 (use-package terraform-mode

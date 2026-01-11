@@ -18,7 +18,7 @@ fi
 #
 
 export EDITOR='nano'
-export VISUAL='emacs -nw'
+# export VISUAL='emacs -nw'
 export PAGER='less'
 
 #
@@ -46,7 +46,6 @@ path=(
   /usr/local/{bin,sbin}
   $HOME/bin
   $HOME/.local/bin
-  $HOME/.pyenv/bin
   $path
 )
 
@@ -70,7 +69,8 @@ fi
 # pyenv
 #
 if [[ -s "$HOME/.pyenv" ]]; then
-    export pyenv_root="$HOME/.pyenv"
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init - --no-rehash)"
 fi
 
@@ -87,13 +87,6 @@ fi
 #
 if [[ -s "$HOME/.poetry" ]]; then
     export PATH="$HOME/.poetry/bin:$PATH"
-fi
-
-#
-# spark
-#
-if [[ -s "$HOME/spark" ]]; then
-    export PATH="$HOME/spark/bin:$PATH"
 fi
 
 #
