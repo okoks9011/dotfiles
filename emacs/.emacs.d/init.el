@@ -76,6 +76,25 @@
                            ".cc")))
             (rename-file old-name new-name)))))))
 
+(defun wslp ()
+  "Return t if Emacs is running in WSL2, nil otherwise."
+  (and
+   ;; Check if the system is Linux
+   (eq system-type 'gnu/linux)
+   ;; Check for WSL-specific file
+   (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop")
+   ;; Check for WSL2-specific file
+   (file-exists-p "/run/WSL")
+   ;; Additional check: look for Windows-style root directory
+   (file-directory-p "/mnt/c")))
+
+(when (wslp)
+  ; WSLg breaks copy-paste from Emacs into Windows
+  ; see: https://www.lukas-barth.net/blog/emacs-wsl-copy-clipboard/
+  (setq select-active-regions nil
+        select-enable-clipboard 't
+        select-enable-primary nil
+        interprogram-cut-function #'gui-select-text))
 
 ;;
 ;; Packages
@@ -159,8 +178,7 @@
   (elpy-enable)
   :config
   (setq elpy-modules
-        (remove 'elpy-module-flymake elpy-modules))
-  (setq elpy-rpc-python-command "/usr/bin/python3"))
+        (remove 'elpy-module-flymake elpy-modules)))
 
 (use-package f
   :straight t)

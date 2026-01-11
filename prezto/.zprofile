@@ -145,3 +145,10 @@ fi
 if [[ -s "$HOME/flutter/bin" ]]; then
     export PATH="$PATH:$HOME/flutter/bin"
 fi
+
+#
+# for opam
+#
+if [[ -s "$HOME/.opam/opam-init" ]]; then
+    source "$HOME/.opam/opam-init/init.zsh"
+fi
