@@ -282,7 +282,7 @@
   (add-hook 'go-mode-hook (lambda ()
                             (setq-local whitespace-style
                                         (remove 'tabs whitespace-style))))
-  (add-hook 'go-mode-hook 'copilot-mode)
+  ;; (add-hook 'go-mode-hook 'copilot-mode)
   (setq gofmt-command "goimports")
   (add-hook 'before-save-hook 'gofmt-before-save))
 
@@ -303,7 +303,8 @@
   ((go-mode . lsp)
    (haskell-mode . lsp)
    (fsharp-mode . lsp)
-   (lsp-mode . yas-minor-mode))
+   (lsp-mode . yas-minor-mode)
+   (rustic-mode . yas-minor-mode))
   :commands
   lsp)
 
@@ -461,6 +462,8 @@
 (use-package terraform-mode
   :straight t)
 
+(use-package rustic
+  :straight t)
 
 ;;
 ;; Custom Settings
@@ -574,6 +577,7 @@
 (global-set-key (kbd "C-x m") 'eshell)
 (global-set-key (kbd "C-x M-m") 'shell)
 
+(setq native-comp-async-report-warnings-errors 'slient)
 
 ;; Specific
 ;; ------------------------------

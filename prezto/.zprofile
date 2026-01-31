@@ -105,6 +105,13 @@ if [[ -s "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk" ]]; then
 fi
 
 #
+# for maual golang installation
+#
+if [[ -s "/usr/local/go/bin" ]]; then
+    export PATH="$PATH:/usr/local/go/bin"
+fi
+
+#
 # for go bin
 #
 if [[ -s "$HOME/go/bin" ]]; then
