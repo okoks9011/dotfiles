@@ -17,9 +17,16 @@ emacs/.emacs.d/elpy
 emacs/.emacs.d/org-clock-save.el
 emacs/.emacs.d/auto-save-list
 emacs/.emacs.d/backups
-/emacs/.emacs.d/.dap-breakpoints
-/emacs/.emacs.d/.lsp-session-v1
-/emacs/.emacs.d/straight/
-/emacs/.emacs.d/eln-cache/
+emacs/.emacs.d/.dap-breakpoints
+emacs/.emacs.d/.lsp-session-v1
+emacs/.emacs.d/straight/
+emacs/.emacs.d/eln-cache/
 
 fish/.config/fish/fish_variables
+# ignore by defaults
+fish/.config/fish/completions/*
+fish/.config/fish/conf.d/*
+fish/.config/fish/functions/*
+fish/.config/fish/themes/*
+# allow if necessary
+# !fish/.config/fish/functions/my_custom.fish
