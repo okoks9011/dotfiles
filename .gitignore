@@ -21,3 +21,5 @@ emacs/.emacs.d/backups
 /emacs/.emacs.d/.lsp-session-v1
 /emacs/.emacs.d/straight/
 /emacs/.emacs.d/eln-cache/
+
+fish/.config/fish/fish_variables
