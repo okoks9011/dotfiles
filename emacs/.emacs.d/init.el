@@ -25,6 +25,7 @@
 ;;
 ;; Auxiliary functions
 ;; --------------------------------------------------------------------------
+(defvar my/workspace "~/workspace")
 (defun read-lines (filePath)
   (with-temp-buffer
     (insert-file-contents filePath)
@@ -114,6 +115,8 @@
 
 (use-package org
   :straight t
+  :custom
+  (org-export-with-toc nil)
   :after ox-gfm
   :defer 7
   :bind
@@ -129,6 +132,7 @@
     (when (file-exists-p agenda-list-file)
       (setq org-agenda-files (read-lines agenda-list-file))))
   :config
+  (require 'ox-md)
   (add-to-list 'org-file-apps '(directory . emacs)))
 
 (use-package org-bullets
@@ -481,6 +485,12 @@
         ((and (eq system-type 'gnu/linux)
               (string= (system-name) "archlinux.local"))
          "-RIXF-D2Coding-normal-normal-normal-*-32-*-*-*-d-0-iso10646-1")
+        ((and (eq system-type 'gnu/linux)
+              (string-prefix-p "cachyos" (system-name)))
+         "D2Coding-12"
+         ;; "-RIXF-D2Coding-regular-normal-normal-*-29-*-*-*-d-0-iso10646-1"
+         ;; "-RIXF-D2Coding-regular-normal-normal-*-20-*-*-*-d-0-iso10646-1"
+         )
         ((eq system-type 'gnu/linux)
          "-RIXF-D2Coding-normal-normal-normal-*-16-*-*-*-d-0-iso10646-1")))
 (when (display-graphic-p)
@@ -578,6 +588,8 @@
 (global-set-key (kbd "C-x M-m") 'shell)
 
 (setq native-comp-async-report-warnings-errors 'slient)
+
+(setq ring-bell-function 'ignore)
 
 ;; Specific
 ;; ------------------------------

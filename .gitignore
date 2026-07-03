@@ -21,6 +21,9 @@ emacs/.emacs.d/.dap-breakpoints
 emacs/.emacs.d/.lsp-session-v1
 emacs/.emacs.d/straight/
 emacs/.emacs.d/eln-cache/
+emacs/.emacs.d/org-roam.db
+emacs/.emacs.d/ielm-history.eld
+emacs/.emacs.d/.org-id-locations
 
 fish/.config/fish/fish_variables
 # ignore by defaults
