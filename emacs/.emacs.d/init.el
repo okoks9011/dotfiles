@@ -430,6 +430,14 @@
   :init
   (add-to-list 'auto-mode-alist '("\\.rest$" . restclient-mode)))
 
+(use-package treesit-auto
+  :straight t
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+
 (use-package dune
   :straight t)
 

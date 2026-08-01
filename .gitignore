@@ -33,3 +33,4 @@ fish/.config/fish/functions/*
 fish/.config/fish/themes/*
 # allow if necessary
 # !fish/.config/fish/functions/my_custom.fish
+/emacs/.emacs.d/tree-sitter/
