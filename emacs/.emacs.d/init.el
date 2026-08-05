@@ -26,6 +26,7 @@
 ;; Auxiliary functions
 ;; --------------------------------------------------------------------------
 (defvar my/workspace "~/workspace")
+
 (defun read-lines (filePath)
   (with-temp-buffer
     (insert-file-contents filePath)
@@ -53,29 +54,40 @@
              (setq flycheck-python-flake8-executable (concat venv-path "/bin/flake8"))
              t))))))
 
-(defun kickstart-get-candiname (f-attrib)
-  (car (split-string (car f-attrib) "-")))
+(defun my/copy-file-path-relative-to-git-root (&optional arg)
+  "Copy the current file path with line number relative to the git repository root."
+  (interactive "P")
+  (if-let* ((file (buffer-file-name))
+             (git-root (string-trim
+                        (shell-command-to-string "git rev-parse --show-toplevel")))
+             (_ (not (string-match-p "^fatal:" git-root)))
+             (relative-path (file-relative-name file git-root))
+             (path-with-line (format "%s:L%d" relative-path (line-number-at-pos)))
+             (result (if arg
+                         (format "%s `%s`" path-with-line (string-trim (thing-at-point 'line t)))
+                       path-with-line)))
+      (progn
+        (kill-new result)
+        (message "Copied: %s" result))
+    (message "Not in a git repository or buffer has no file")))
 
-(defun kickstart-rename-files ()
-  (interactive)
-  (let ((all-files (directory-files-and-attributes "." nil "-.*\.txt$"))
-        )
-    (dolist (candi (seq-group-by 'kickstart-get-candiname all-files))
-      (let* ((candi-name (car candi))
-             (candi-files (cdr candi))
-             (sorted-files (cl-sort candi-files
-                                    'time-less-p
-                                    :key (lambda (x) (nth 5 x))))
-             (numbered-files (cl-mapcar 'cons
-                                        (number-sequence 0 (length candi-files))
-                                        sorted-files)))
-        (dolist (numbered-file numbered-files)
-          (let ((old-name (nth 1 numbered-file))
-                (new-name (concat
-                           (string (+ ?A (car numbered-file)) ?.)
-                           candi-name
-                           ".cc")))
-            (rename-file old-name new-name)))))))
+(defun my/go-mod-root ()
+  "Return the nearest directory contains go.mod if the current buffer is a Go file."
+  (when (and buffer-file-name
+             (derived-mode-p 'go-mode 'go-ts-mode))
+    (when-let* ((dir (locate-dominating-file default-directory "go.mod")))
+      (expand-file-name dir))))
+
+(defun my/magit-worktree-remember (directory &rest _)
+  "Add the newly created worktree DIRECTORY to the project.el project list."
+  (let ((dir (file-name-as-directory (expand-file-name directory))))
+    (when (file-directory-p dir)
+      (if-let* ((pr (project-current nil dir)))
+          (let ((root (expand-file-name (project-root pr))))
+            (project-remember-project pr)
+            (unless (file-equal-p root dir)
+              (message "Warning: Root resolved to %s (worktree %s)" root dir)))
+        (message "project.el failed to recognize %s as a project" dir)))))
 
 (defun wslp ()
   "Return t if Emacs is running in WSL2, nil otherwise."
@@ -143,7 +155,10 @@
 (use-package magit
   :straight t
   :bind
-  (("C-x g" . magit-status)))
+  (("C-x g" . magit-status))
+  :config
+  (advice-add 'magit-worktree-checkout :after #'my/magit-worktree-remember)
+  (advice-add 'magit-worktree-branch   :after #'my/magit-worktree-remember))
 
 (use-package eshell-git-prompt
   :straight t
@@ -281,12 +296,13 @@
         ("C-<tab>" . copilot-accept-completion-by-word)
         ("C-TAB" . copilot-accept-completion-by-word))
   :init
+  (setq copilot-indent-offset-warning-disable t)
   (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
   (add-hook 'go-mode-hook (lambda () (setq lsp-go-env '((GOFLAGS . "-tags=integration")))))
   (add-hook 'go-mode-hook (lambda ()
                             (setq-local whitespace-style
                                         (remove 'tabs whitespace-style))))
-  ;; (add-hook 'go-mode-hook 'copilot-mode)
+  (add-hook 'go-mode-hook 'copilot-mode)
   (setq gofmt-command "goimports")
   (add-hook 'before-save-hook 'gofmt-before-save))
 
@@ -308,7 +324,9 @@
    (haskell-mode . lsp)
    (fsharp-mode . lsp)
    (lsp-mode . yas-minor-mode)
-   (rustic-mode . yas-minor-mode))
+   (rustic-mode . lsp))
+  :config
+  (advice-add 'lsp--suggest-project-root :before-until #'my/go-mod-root)
   :commands
   lsp)
 
@@ -406,21 +424,6 @@
   :defer t
   :straight t)
 
-(use-package ellama
-  :straight t
-  :init
-  (setopt ellama-keymap-prefix "C-c e")
-  (setopt ellama-lanuage "Korean")
-  (require 'llm-ollama)
-  (setopt ellama-provider
-          (make-llm-ollama
-           ;; this model should be pulled to use it
-           ;; value should be the same as you print in terminal during pull
-           :chat-model "llama3-instruct-8b:latest"
-           :embedding-model "nomic-embed-text"
-           ;; :default-chat-non-standard-params '(("num_ctx" . 8192))
-)))
-
 (use-package yafolding
   :straight t
   :bind (("C-c <C-return>" . yafolding-toggle-element)))
@@ -430,11 +433,44 @@
   :init
   (add-to-list 'auto-mode-alist '("\\.rest$" . restclient-mode)))
 
+
+(use-package ghostel
+  :straight t
+  :init
+  (add-hook 'ghostel-mode-hook #'ghostel-ime-mode)
+  :bind (("C-x m" . ghostel)
+         :map ghostel-semi-char-mode-map
+         ("C-s"  . swiper)
+         ("C-k"  . ghostel-send-C-k-and-kill)
+         :map project-prefix-map
+         ("m" . ghostel-project)
+         ("M" . ghostel-project-list-buffers))
+  :config
+  (defun ghostel-send-C-k-and-kill ()
+    "Send `C-k' to ghostel.
+Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
+    (interactive)
+    (kill-ring-save (point) (line-end-position))
+    (ghostel-send-key "k" "ctrl"))
+  (add-to-list 'project-switch-commands '(ghostel-project "Ghostel") t)
+  (add-to-list 'project-switch-commands '(ghostel-project-list-buffers "Ghostel buffers") t)
+  (add-to-list 'ghostel-eval-cmds '("magit-status-setup-buffer" magit-status-setup-buffer))
+  :hook
+  (ghostel-mode . (lambda () (display-line-numbers-mode -1)))
+  :custom
+  (ghostel-shell "/opt/homebrew/bin/fish"))
+
+(use-package ghostel-eshell
+  :straight nil
+  :hook (eshell-load . ghostel-eshell-visual-command-mode))
+
 (use-package treesit-auto
   :straight t
   :custom
   (treesit-auto-install 'prompt)
   :config
+  (setq treesit-auto-langs
+        (seq-difference treesit-auto-langs '(go gomod)))
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
@@ -484,6 +520,15 @@
 (use-package rustic
   :straight t)
 
+(use-package fish-mode
+  :straight t)
+
+(use-package lua-mode
+  :straight t)
+
+(use-package open-junk-file
+  :straight t)
+
 ;;
 ;; Custom Settings
 ;; --------------------------------------------------------------------------
@@ -508,12 +553,20 @@
          )
         ((eq system-type 'gnu/linux)
          "-RIXF-D2Coding-normal-normal-normal-*-16-*-*-*-d-0-iso10646-1")))
-(when (display-graphic-p)
-  (scroll-bar-mode -1)
+
+(defun my/setup-fonts ()
   (set-frame-font my-font nil t)
   (set-face-attribute 'fixed-pitch nil :family "D2Coding")
-  (set-fontset-font "fontset-default" '(#xAC00 . #xD7AF) "D2Coding")
-  (set-fontset-font "fontset-default" '(#x3131 . #x319E) "D2Coding")
+  (set-fontset-font t 'hangul "D2Coding" nil)
+  ;; Nerd font
+  (setq use-default-font-for-symbols nil)
+  (dolist (range '((#x23fb . #x23fe) (#x2665 . #x2665) (#x26a1 . #x26a1)
+                   (#x2b58 . #x2b58)
+                   (#xe000 . #xf8ff)
+                   (#xf0000 . #xffffd)))
+    (set-fontset-font t range "Symbols Nerd Font Mono" nil)))
+
+(defun my/setup-frame ()
   (let* ((half-screen-width (/ (x-display-pixel-width) 2))
          (my-char-cnt 160)
          (my-left (max 50
@@ -524,18 +577,17 @@
             (width . ,my-char-cnt)
             (height . 110)))))
 
+(when (display-graphic-p)
+  (scroll-bar-mode -1)
+  (my/setup-fonts)
+  (my/setup-frame))
+
 (setq default-korean-keyboard "3")
 (set-language-environment "Korean")
 (prefer-coding-system 'utf-8)
 (setq system-time-locale "C")
 
 (global-display-line-numbers-mode t)
-(unless (display-graphic-p)
-  (setq linum-format "%d "))
-(add-hook 'eshell-mode-hook
-          (lambda () (linum-mode -1)))
-(add-hook 'term-mode-hook
-          (lambda () (linum-mode -1)))
 
 (setq whitespace-style
       '(face
@@ -591,7 +643,7 @@
 
 (setq custom-file (make-temp-file "emacs-custom"))
 
-(setq explicit-shell-file-name "/bin/bash")
+;; (setq explicit-shell-file-name "/bin/bash")
 
 (setenv "LANG" "en_US.UTF-8")
 
@@ -599,8 +651,9 @@
 (put 'upcase-region 'disabled nil)
 
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
-(global-set-key (kbd "C-x m") 'eshell)
-(global-set-key (kbd "C-x M-m") 'shell)
+(global-set-key (kbd "C-c C-k") 'my/copy-file-path-relative-to-git-root)
+;; (global-set-key (kbd "C-x m") 'eshell)
+;; (global-set-key (kbd "C-x M-m") 'shell)
 
 (setq native-comp-async-report-warnings-errors 'slient)
 
@@ -630,6 +683,23 @@
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
 (global-set-key (kbd "M-z") 'zap-up-to-char)
+
+;; Org-Roam daily
+;; ------------------------------
+(defun my/org-roam-create-work-daily-note ()
+  "Create today's daily note with optimized work performance."
+  (interactive)
+  (org-roam-dailies-goto-today)
+
+  ;; Clear the existing contents
+  (goto-char (point-min))
+  (when (re-search-forward "^#\\+title:" nil t)
+    (forward-line 1)
+    (delete-region (point) (point-max)))
+
+  ;; TODO: Insert contents read from template
+)
+
 
 ;; init.el end
 ;; --------------------------------------------------------------------------
