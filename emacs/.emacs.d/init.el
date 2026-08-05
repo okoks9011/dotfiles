@@ -438,6 +438,13 @@
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
+(use-package c-ts-mode
+  :straight nil
+  :defer t
+  :custom
+  (c-ts-mode-indent-offset 4)
+  (c-ts-mode-indent-style 'k&r))
+
 (use-package dune
   :straight t)
 
