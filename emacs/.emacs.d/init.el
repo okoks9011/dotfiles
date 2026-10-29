@@ -1,8 +1,17 @@
-;; init.el start  -*- lexical-binding: t; -*-
+;;; -*- lexical-binding: t -*-
+;;
+;; init.el start
 ;; --------------------------------------------------------------------------
 ;;
 ;; Initialize straight.el
 ;; --------------------------------------------------------------------------
+;; Shallow clone: protobuf-mode/dune pull entire monorepos otherwise
+(setq straight-vc-git-default-clone-depth 1)
+;; Skip `find' over every repo at startup; edits made outside Emacs
+;; need M-x straight-rebuild-package
+(setq straight-check-for-modifications '(check-on-save find-when-checking))
+(setq straight-use-package-by-default t)
+
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name
@@ -20,6 +29,12 @@
   (load bootstrap-file nil 'nomessage))
 
 (straight-use-package 'use-package)
+(setq use-package-compute-statistics t)
+
+;; Emacs 29 ships these; straight copies clash with built-in eglot
+(dolist (pkg '(project xref flymake eldoc jsonrpc eglot external-completion))
+  (add-to-list 'straight-built-in-pseudo-packages pkg))
+
 
 ;;
 ;; Auxiliary functions
@@ -31,27 +46,17 @@
     (insert-file-contents filePath)
     (split-string (buffer-string) "\n" t)))
 
-(defun indent-marked-files ()
+(defun my/indent-marked-files ()
   (interactive)
   (dolist (file (dired-get-marked-files))
     (find-file file)
     (delete-trailing-whitespace)
-    (unless (s-suffix? ".py" file)
-      (replace-string "\t" "    " nil (point-min) (point-max))
+    (unless (string-suffix-p ".py" file)
+      (let ((tab-width 4))
+        (untabify (point-min) (point-max)))
       (indent-region (point-min) (point-max)))
     (save-buffer)
     (kill-buffer nil)))
-
-(defun pyvenv-autoload ()
-  "Automatically activates pyvenv version if .venv directory exists."
-  (f-traverse-upwards
-   (lambda (path)
-     (let ((venv-path (f-expand ".venv" path)))
-       (if (f-exists? venv-path)
-           (progn
-             (pyvenv-activate venv-path)
-             (setq flycheck-python-flake8-executable (concat venv-path "/bin/flake8"))
-             t))))))
 
 (defun my/copy-file-path-relative-to-git-root (&optional arg)
   "Copy the current file path with line number relative to the git repository root."
@@ -88,7 +93,7 @@
               (message "Warning: Root resolved to %s (worktree %s)" root dir)))
         (message "project.el failed to recognize %s as a project" dir)))))
 
-(defun wslp ()
+(defun my/wslp ()
   "Return t if Emacs is running in WSL2, nil otherwise."
   (and
    ;; Check if the system is Linux
@@ -100,7 +105,7 @@
    ;; Additional check: look for Windows-style root directory
    (file-directory-p "/mnt/c")))
 
-(when (wslp)
+(when (my/wslp)
   ; WSLg breaks copy-paste from Emacs into Windows
   ; see: https://www.lukas-barth.net/blog/emacs-wsl-copy-clipboard/
   (setq select-active-regions nil
@@ -122,34 +127,30 @@
 
 (global-set-key (kbd "C-c y") #'my/copy-region-to-clipboard)
 
+(defmacro my/use-package-deferred (&rest forms)
+  "Add `:defer t' to each `use-package' form in FORMS."
+  `(progn ,@(mapcar (lambda (f) `(,@f :defer t)) forms)))
+
 ;;
 ;; Packages
 ;; --------------------------------------------------------------------------
 (when (eq system-type 'darwin)
   (use-package exec-path-from-shell
-    :straight t
     :init
     (setq shell-file-name "/bin/zsh")
     :config
     (exec-path-from-shell-initialize)))
 
 (use-package color-theme-sanityinc-tomorrow
-  :straight t
   :config
   (load-theme 'sanityinc-tomorrow-bright t))
 
 (use-package org
-  :straight t
-  :custom
-  (org-export-with-toc nil)
-  :after ox-gfm
-  :defer 7
   :bind
   (("C-c l" . org-store-link)
    ("C-c a" . org-agenda)
    ("C-c b" . org-switchb))
   :init
-  (setq org-hide-leading-stars t)
   (setq org-log-done t)
   (setq org-startup-truncated nil)
   (setq org-export-with-sub-superscripts nil)
@@ -157,184 +158,144 @@
     (when (file-exists-p agenda-list-file)
       (setq org-agenda-files (read-lines agenda-list-file))))
   :config
-  (require 'ox-md)
   (add-to-list 'org-file-apps '(directory . emacs)))
 
-(use-package org-bullets
-  :straight t
-  :init
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
-
 (use-package magit
-  :straight t
   :bind
   (("C-x g" . magit-status))
   :config
   (advice-add 'magit-worktree-checkout :after #'my/magit-worktree-remember)
   (advice-add 'magit-worktree-branch   :after #'my/magit-worktree-remember))
 
-(use-package eshell-git-prompt
-  :straight t
-  :config
-  (eshell-git-prompt-use-theme 'powerline))
-
+;; Considered switching to `expreg', but it doesn't support contracting the
+;; region with a negative prefix (`C-- C-='), so keep `expand-region'.
 (use-package expand-region
-  :straight t
   :bind
   (("C-=" . 'er/expand-region)))
 
-(use-package web-mode
-  :straight t
-  :init
-  (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
-  (add-hook 'web-mode-hook 'electric-pair-mode)
-  :config
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-css-indent-offset 2)
-  (setq web-mode-code-indent-offset 2))
-
 (use-package flycheck
-  :straight t
   :init
   (add-hook 'after-init-hook 'global-flycheck-mode)
   :config
-  (setq flycheck-checkers
-        (cons 'python-pylint (remove 'python-pylint flycheck-checkers)))
   (flycheck-add-mode 'javascript-eslint 'web-mode)
-  (setq-default flycheck-global-modes '(python-mode web-mode js-mode css-mode))
+  (setq-default flycheck-global-modes
+                '(web-mode js-mode js-ts-mode css-mode css-ts-mode))
   (setq-default flycheck-disabled-checkers '(javascript-jshint)))
 
-(use-package elpy
-  :straight t
-  :init
-  (elpy-enable)
-  :config
-  (setq elpy-modules
-        (remove 'elpy-module-flymake elpy-modules)))
-
-(use-package f
-  :straight t)
-
-(use-package peep-dired
-  :straight t
+(use-package dired-preview
   :after (dired)
   :bind
   (:map dired-mode-map
-        ("P" . peep-dired)))
-
-(use-package yasnippet
-  :straight t
-  :init
-  (add-hook 'org-mode-hook 'yas-minor-mode)
-  :config
-  (yas-reload-all))
-
-(use-package ggtags
-  :straight t
-  :init
-  (add-hook 'c-mode-common-hook
-            (lambda ()
-              (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-                (ggtags-mode 1)))))
-
-(use-package google-c-style
-  :straight t
-  :init
-  (add-hook 'c-mode-common-hook (lambda () (setq c-basic-offset 4)))
-  (add-hook 'c-mode-common-hook 'google-set-c-style)
-  (add-hook 'c-mode-common-hook 'google-make-newline-indent))
-
-(use-package rainbow-delimiters
-  :straight t
-  :init
-  (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
-  (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode))
+        ("P" . dired-preview-mode)))
 
 (use-package paredit
-  :straight t
   :init
   (add-hook 'clojure-mode-hook 'paredit-mode)
   (add-hook 'emacs-lisp-mode-hook 'paredit-mode)
   (add-hook 'ielm-mode-hook 'paredit-mode)
+  (add-hook 'racket-mode-hook 'paredit-mode)
+  (add-hook 'racket-repl-mode-hook 'paredit-mode)
   :bind
   (:map paredit-mode-map
         ("RET" . nil)
         ("C-j" . paredit-new-line)))
 
-(use-package markdown-mode
-  :straight t
-  :init
-  (add-to-list 'auto-mode-alist '("\\.md$" . gfm-mode)))
-
-(use-package ivy
-  :straight t
+(use-package savehist
+  :straight nil
   :config
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "%d/%d ")
-  (ivy-mode 1))
+  (savehist-mode 1))
 
-(use-package swiper
-  :straight t
+(use-package recentf
+  :straight nil
+  :config
+  (recentf-mode 1))
+
+(use-package vertico
+  :config
+  (vertico-mode 1))
+
+(use-package vertico-directory
+  :straight nil
+  :after vertico
   :bind
-  (("C-s" . swiper)))
+  (:map vertico-map
+        ("RET"   . vertico-directory-enter)
+        ("DEL"   . vertico-directory-delete-char)
+        ("M-DEL" . vertico-directory-delete-word))
+  :hook
+  (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
-(use-package counsel
-  :straight t
+(use-package orderless
   :config
-  (counsel-mode 1)
-  ;; Using :bind breaks counsel key map.
-  (bind-key "C-c g" 'counsel-git)
-  (bind-key "C-c j" 'counsel-git-grep))
+  (setq completion-styles '(orderless basic))
+  (setq completion-category-overrides
+        '((file (styles basic partial-completion))))
+  (setq completion-category-defaults nil))
 
-(use-package smex
-  :straight t
+(use-package marginalia
   :config
-  (smex-initialize))
+  (marginalia-mode 1))
+
+(use-package consult
+  :init
+  (setq xref-show-xrefs-function #'consult-xref)
+  (setq xref-show-definitions-function #'consult-xref)
+  :bind
+  (("C-s"   . consult-line)
+   ("C-x b" . consult-buffer)
+   ("M-y"   . consult-yank-pop)
+   ("M-g g" . consult-goto-line)
+   ("M-g i" . consult-imenu)
+   ;; ("C-c g" . project-find-file)
+   ;; ("C-c j" . consult-git-grep)
+   ;; ("C-c r" . consult-ripgrep)
+   )
+  :config
+  (consult-customize consult-source-recent-file :preview-key "M-."))
+
+(use-package embark
+  :bind
+  (("C-." . embark-act)
+   ("C-h B" . embark-bindings)))
+
+(use-package embark-consult
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package consult-lsp
+  :commands consult-lsp-symbols)
+
+;; (use-package ivy
+;;   :config
+;;   (setq ivy-use-virtual-buffers t)
+;;   (setq ivy-count-format "%d/%d ")
+;;   (ivy-mode 1))
+
+;; (use-package swiper
+;;   :bind
+;;   (("C-s" . swiper)))
+
+;; (use-package counsel
+;;   :config
+;;   (counsel-mode 1)
+;;   ;; Using :bind breaks counsel key map.
+;;   (bind-key "C-c g" 'counsel-git)
+;;   (bind-key "C-c j" 'counsel-git-grep))
 
 (use-package avy
-  :straight t
   :bind
-  (("C-:" . avy-goto-char)
-   ("C-'" . avy-goto-char-2)
-   ("M-g f" . avy-goto-line)))
-
-(use-package go-mode
-  :straight t
-  :bind
-  (("C-c m" . go-test-current-file)
-   ("C-c ." . go-test-current-test))
-  (:map copilot-completion-map
-        ("<tab>" . copilot-accept-completion)
-        ("TAB" . copilot-accept-completion)
-        ("C-<tab>" . copilot-accept-completion-by-word)
-        ("C-TAB" . copilot-accept-completion-by-word))
-  :init
-  (setq copilot-indent-offset-warning-disable t)
-  (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
-  (add-hook 'go-mode-hook (lambda () (setq lsp-go-env '((GOFLAGS . "-tags=integration")))))
-  (add-hook 'go-mode-hook (lambda ()
-                            (setq-local whitespace-style
-                                        (remove 'tabs whitespace-style))))
-  (add-hook 'go-mode-hook 'copilot-mode)
-  (setq gofmt-command "goimports")
-  (add-hook 'before-save-hook 'gofmt-before-save))
-
-(use-package dash-at-point
-  :straight t
-  :bind
-  (("C-c d" . dash-at-point))
-  :init
-  (add-hook 'go-mode-hook (lambda () (setq dash-at-point-docset "go"))))
+  (("C-:" . avy-goto-char-timer)
+   ("M-g f" . avy-goto-line)
+   :map isearch-mode-map
+   ("C-'" . avy-isearch)))
 
 (use-package lsp-mode
-  :straight t
   :init
   (setq lsp-keymap-prefix "C-c p")
   (setq lsp-file-watch-threshold 10000)
   ;; (setq lsp-eldoc-enable-hover nil)
   :hook
   ((go-mode . lsp)
-   (haskell-mode . lsp)
    (fsharp-mode . lsp)
    (lsp-mode . yas-minor-mode)
    (rustic-mode . lsp))
@@ -344,74 +305,24 @@
   lsp)
 
 (use-package lsp-ui
-  :straight t
   :commands lsp-ui-mode)
 
-(use-package  lsp-ivy
-  :straight t
-  :commands lsp-ivy-workspace-symbol)
+;; (use-package  lsp-ivy
+;;   :commands lsp-ivy-workspace-symbol)
 
 (use-package lsp-treemacs
-  :straight t
-  :commands lsp-treemacs-erros-list)
-
-(use-package dumb-jump
-  :straight t
-  :init
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+  :commands lsp-treemacs-errors-list)
 
 (use-package flycheck-golangci-lint
-  :straight t
   :hook
   (go-mode . flycheck-golangci-lint-setup))
 
-(use-package proof-general
-  :straight t
-  :init
-  (setq proof-splash-enable nil)
-  (setq proof-electric-terminator-enable t))
-
 (use-package which-key
-  :straight t
+  :straight nil
   :config
   (which-key-mode +1))
 
-;; (use-package ace-window
-;;   :straight t
-;;   :bind
-;;   ([remap other-window] . ace-window))
-
-(use-package dap-mode
-  :straight t
-  :init
-  (add-hook 'dap-stopped-hook
-            (lambda (arg) (call-interactively #'dap-hydra)))
-  :config
-  (require 'dap-dlv-go)
-  (dap-register-debug-template
-   "Go Dlv Test Current Function Configuration With Integration Tag"
-   (list :type "go"
-         :request "launch"
-         :name "Test function with integration tag"
-         :mode "test"
-         :program nil
-         :args nil
-         :env '((GOFLAGS . "-tags=integration"))))
-  (dap-register-debug-template
-  "Launch managefnt with test env"
-  (list :type "go"
-        :request "launch"
-        :name "Launch Executable"
-        :mode "exec"
-        :program "../../bin/managefnt"
-        :args "-config=config/config.test.us"
-        :env '(("GOENV" . "test")))))
-
-(use-package copilot
-  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("dist" "*.el")))
-
 (use-package org-roam
-  :straight t
   :custom
   (org-roam-directory (concat my/workspace "/wiki_logs/roam/"))
   :bind (("C-c n l" . org-roam-buffer-toggle)
@@ -428,32 +339,19 @@
   ;; If using org-roam-protocol
   (require 'org-roam-protocol))
 
-;; (use-package org-excalidraw
-;;   :straight (:type git :host github :repo "wdavew/org-excalidraw")
-;;   :config
-;;   (org-excalidraw-directory (concat my/workspace "/wiki_logs/excalidraw")))
-
-(use-package fsharp-mode
-  :defer t
-  :straight t)
-
-(use-package yafolding
-  :straight t
-  :bind (("C-c <C-return>" . yafolding-toggle-element)))
-
-(use-package restclient
-  :straight t
-  :init
-  (add-to-list 'auto-mode-alist '("\\.rest$" . restclient-mode)))
-
+(use-package hideshow
+  :straight nil
+  :hook (prog-mode . hs-minor-mode)
+  :bind (:map hs-minor-mode-map
+              ("C-c <C-return>" . hs-toggle-hiding)))
 
 (use-package ghostel
-  :straight t
   :init
   (add-hook 'ghostel-mode-hook #'ghostel-ime-mode)
   :bind (("C-x m" . ghostel)
          :map ghostel-semi-char-mode-map
-         ("C-s"  . swiper)
+         ("C-s"  . consult-line)
+         ;; ("C-s"  . swiper)
          ("C-k"  . ghostel-send-C-k-and-kill)
          :map project-prefix-map
          ("m" . ghostel-project)
@@ -469,79 +367,167 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
   (add-to-list 'project-switch-commands '(ghostel-project-list-buffers "Ghostel buffers") t)
   (add-to-list 'ghostel-eval-cmds '("magit-status-setup-buffer" magit-status-setup-buffer))
   :hook
-  (ghostel-mode . (lambda () (display-line-numbers-mode -1))))
+  (ghostel-mode . (lambda () (display-line-numbers-mode -1)))
+  :custom
+  (ghostel-shell "/opt/homebrew/bin/fish"))
 
 (use-package ghostel-eshell
   :straight nil
   :hook (eshell-load . ghostel-eshell-visual-command-mode))
 
 (use-package treesit-auto
-  :straight t
   :custom
   (treesit-auto-install 'prompt)
   :config
   (setq treesit-auto-langs
-        (seq-difference treesit-auto-langs '(go gomod)))
+        (seq-difference treesit-auto-langs '(go gomod ocaml)))
   (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+  (global-treesit-auto-mode)
+  ;; auto-mode-alist 'all already picks ts-modes by extension; the
+  ;; per-file remap rebuild only probes all 60 grammars on every visit.
+  (advice-remove #'set-auto-mode-0 #'treesit-auto--set-major-remap))
 
-(use-package c-ts-mode
+(use-package flymake-ruff
+  :hook
+  (eglot-managed-mode . flymake-ruff-load))
+
+(use-package eglot
   :straight nil
-  :defer t
-  :custom
-  (c-ts-mode-indent-offset 4)
-  (c-ts-mode-indent-style 'k&r))
+  :hook
+  (python-base-mode . eglot-ensure)
+  :config
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode) "basedpyright-langserver" "--stdio")))
 
-(use-package zig-mode
-  :straight t)
-
-(use-package dune
-  :straight t)
-
-(use-package pdf-tools
-  :straight t)
-
-(use-package lsp-haskell
-  :straight t)
+(use-package ocaml-eglot
+  :hook
+  (tuareg-mode . ocaml-eglot)
+  (ocaml-eglot . eglot-ensure))
 
 (use-package ox-gfm
-  :straight t)
+  :after org)
 
-(use-package sudo-edit
-  :straight t)
+;; Explicit deferred packages
+;; ------------------------------
+(my/use-package-deferred
+ (use-package org-modern
+   :hook
+   ((org-mode . org-modern-mode)
+    (org-agenda-finalize . org-modern-agenda))
+   :custom
+   (org-modern-star 'replace))
 
-(use-package js2-mode
-  :straight t)
+ (use-package web-mode
+   :init
+   (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
+   (add-hook 'web-mode-hook 'electric-pair-mode)
+   :config
+   (setq web-mode-markup-indent-offset 2)
+   (setq web-mode-css-indent-offset 2)
+   (setq web-mode-code-indent-offset 2))
 
-(use-package json-mode
-  :straight t)
+ (use-package markdown-mode
+   :init
+   (add-to-list 'auto-mode-alist '("\\.md$" . gfm-mode)))
 
-(use-package yaml-mode
-  :straight t)
+ (use-package restclient
+   :init
+   (add-to-list 'auto-mode-alist '("\\.rest$" . restclient-mode)))
 
-(use-package dockerfile-mode
-  :straight t)
+ (use-package yasnippet
+   :init
+   (add-hook 'org-mode-hook 'yas-minor-mode)
+   :config
+   (yas-reload-all))
 
-(use-package protobuf-mode
-  :straight t)
+ (use-package rainbow-delimiters
+   :init
+   (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
+   (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
+   (add-hook 'racket-mode-hook 'rainbow-delimiters-mode))
 
-(use-package gotest
-  :straight t)
+ (use-package dumb-jump
+   :init
+   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
-(use-package terraform-mode
-  :straight t)
+ (use-package dap-mode
+   :init
+   (add-hook 'dap-stopped-hook
+             (lambda (arg) (call-interactively #'dap-hydra)))
+   :config
+   (require 'dap-dlv-go)
+   (dap-register-debug-template
+    "Go Dlv Test Current Function Configuration With Integration Tag"
+    (list :type "go"
+          :request "launch"
+          :name "Test function with integration tag"
+          :mode "test"
+          :program nil
+          :args nil
+          :env '((GOFLAGS . "-tags=integration"))))
+   (dap-register-debug-template
+    "Launch managefnt with test env"
+    (list :type "go"
+          :request "launch"
+          :name "Launch Executable"
+          :mode "exec"
+          :program "../../bin/managefnt"
+          :args "-config=config/config.test.us"
+          :env '(("GOENV" . "test")))))
 
-(use-package rustic
-  :straight t)
+ (use-package python
+   :straight nil
+   :custom
+   (python-shell-interpreter "uv")
+   (python-shell-interpreter-args "run python -i")
+   (python-shell-dedicated 'project)
+   ;; Detection runs `uv -i', which fails; the default prompt regexps already match CPython
+   (python-shell-prompt-detect-enabled nil))
 
-(use-package fish-mode
-  :straight t)
+ (use-package go-mode
+   :init
+   (setq lsp-go-env '((GOFLAGS . "-tags=integration")))
+   (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
+   (add-hook 'go-mode-hook (lambda ()
+                             (setq-local whitespace-style
+                                         (remove 'tabs whitespace-style))))
+   (setq gofmt-command "goimports")
+   :config
+   (add-hook 'before-save-hook 'gofmt-before-save))
 
-(use-package lua-mode
-  :straight t)
+ (use-package gotest
+   :after go-mode
+   :bind
+   (:map go-mode-map
+         ("C-c m" . go-test-current-file)
+         ("C-c ." . go-test-current-test)))
 
-(use-package open-junk-file
-  :straight t)
+ (use-package racket-mode
+   :hook (racket-mode . racket-xp-mode))
+
+ (use-package wgrep)
+
+ (use-package rustic)
+
+ (use-package fsharp-mode)
+
+ (use-package tuareg)
+
+ (use-package dune)
+
+ (use-package protobuf-mode)
+
+ (use-package terraform-mode)
+
+ (use-package fish-mode)
+
+ (use-package lua-mode)
+
+ (use-package sudo-edit)
+
+ (use-package open-junk-file))
+
+
 
 ;;
 ;; Custom Settings
@@ -592,7 +578,6 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
             (height . 110)))))
 
 (when (display-graphic-p)
-  (scroll-bar-mode -1)
   (my/setup-fonts)
   (my/setup-frame))
 
@@ -620,24 +605,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 ;; ------------------------------
 (setq css-indent-offset 2)
 (setq js-indent-level 2)
-(add-hook 'python-mode-hook 'pyvenv-autoload)
 
-(defun python-pipenv-interpreter-toggle ()
-  "Toggle default python-shell-interpreter value and pipenv run python"
-  (interactive)
-  (if-let ((saved (get 'python-pipenv-interpreter-toggle 'state)))
-      (progn
-        (setq python-shell-interpreter saved
-              python-shell-interpreter-args nil)
-        (put 'python-pipenv-interpreter-toggle 'state nil)
-        (message "python-pipenv-interpreter disabled!"))
-    (progn
-      (put 'python-pipenv-interpreter-toggle 'state python-shell-interpreter)
-      (setq python-shell-interpreter "pipenv"
-            python-shell-interpreter-args "run python")
-      (message "python-pipenv-interpreter enabled!"))))
-(with-eval-after-load 'python
-  (define-key python-mode-map (kbd "C-c C-e") 'python-pipenv-interpreter-toggle))
 
 ;; LSP linter chaining
 ;; ------------------------------
@@ -650,6 +618,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
           (lambda ()
             (when (derived-mode-p 'go-mode)
               (setq my/flycheck-local-cache '((lsp . ((next-checkers . (golangci-lint)))))))))
+
 
 ;; Functional Settings
 ;; ------------------------------
@@ -669,8 +638,6 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 ;; (global-set-key (kbd "C-x m") 'eshell)
 ;; (global-set-key (kbd "C-x M-m") 'shell)
 
-(setq native-comp-async-report-warnings-errors 'slient)
-
 (setq ring-bell-function 'ignore)
 
 ;; Specific
@@ -688,35 +655,11 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 (setq-default indent-tabs-mode nil)
 (setq backup-directory-alist `(("." . ,(concat user-emacs-directory
                                                "backups"))))
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(show-paren-mode 1)
-
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
 (autoload 'zap-up-to-char "misc"
   "Kill up to, but not including ARGth occurrence of CHAR." t)
 (global-set-key (kbd "M-z") 'zap-up-to-char)
 
-;; Org-Roam daily
-;; ------------------------------
-(defun my/org-roam-create-work-daily-note ()
-  "Create today's daily note with optimized work performance."
-  (interactive)
-  (org-roam-dailies-goto-today)
-
-  ;; Clear the existing contents
-  (goto-char (point-min))
-  (when (re-search-forward "^#\\+title:" nil t)
-    (forward-line 1)
-    (delete-region (point) (point-max)))
-
-  ;; TODO: Insert contents read from template
-)
-
-
 ;; init.el end
 ;; --------------------------------------------------------------------------
-;; ## added by OPAM user-setup for emacs / base ## 56ab50dc8996d2bb95e7856a6eddb17b ## you can edit, but keep this line
-(require 'opam-user-setup "~/.emacs.d/opam-user-setup.el")
-;; ## end of OPAM user-setup addition for emacs / base ## keep this line
