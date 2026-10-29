@@ -125,7 +125,7 @@
      "--type" "text/plain;charset=utf-8"))
   (message "Copied to clipboard!"))
 
-(global-set-key (kbd "C-c y") #'my/copy-region-to-clipboard)
+(keymap-global-set "C-c y" #'my/copy-region-to-clipboard)
 
 (defmacro my/use-package-deferred (&rest forms)
   "Add `:defer t' to each `use-package' form in FORMS."
@@ -162,18 +162,18 @@
   :bind
   (("C-x g" . magit-status))
   :config
-  (advice-add 'magit-worktree-checkout :after #'my/magit-worktree-remember)
-  (advice-add 'magit-worktree-branch   :after #'my/magit-worktree-remember))
+  (advice-add #'magit-worktree-checkout :after #'my/magit-worktree-remember)
+  (advice-add #'magit-worktree-branch   :after #'my/magit-worktree-remember))
 
 ;; Considered switching to `expreg', but it doesn't support contracting the
 ;; region with a negative prefix (`C-- C-='), so keep `expand-region'.
 (use-package expand-region
   :bind
-  (("C-=" . 'er/expand-region)))
+  (("C-=" . er/expand-region)))
 
 (use-package flycheck
   :init
-  (add-hook 'after-init-hook 'global-flycheck-mode)
+  (add-hook 'after-init-hook #'global-flycheck-mode)
   :config
   (flycheck-add-mode 'javascript-eslint 'web-mode)
   (setq-default flycheck-global-modes
@@ -188,10 +188,10 @@
 
 (use-package paredit
   :init
-  (add-hook 'emacs-lisp-mode-hook 'paredit-mode)
-  (add-hook 'ielm-mode-hook 'paredit-mode)
-  (add-hook 'racket-mode-hook 'paredit-mode)
-  (add-hook 'racket-repl-mode-hook 'paredit-mode)
+  (add-hook 'emacs-lisp-mode-hook #'paredit-mode)
+  (add-hook 'ielm-mode-hook #'paredit-mode)
+  (add-hook 'racket-mode-hook #'paredit-mode)
+  (add-hook 'racket-repl-mode-hook #'paredit-mode)
   :bind
   (:map paredit-mode-map
         ("RET" . nil)
@@ -297,7 +297,7 @@
    (lsp-mode . yas-minor-mode)
    (rustic-mode . lsp))
   :config
-  (advice-add 'lsp--suggest-project-root :before-until #'my/go-mod-root)
+  (advice-add #'lsp--suggest-project-root :before-until #'my/go-mod-root)
   :commands
   lsp)
 
@@ -418,7 +418,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
  (use-package web-mode
    :init
    (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
-   (add-hook 'web-mode-hook 'electric-pair-mode)
+   (add-hook 'web-mode-hook #'electric-pair-mode)
    :config
    (setq web-mode-markup-indent-offset 2)
    (setq web-mode-css-indent-offset 2)
@@ -434,14 +434,14 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 
  (use-package yasnippet
    :init
-   (add-hook 'org-mode-hook 'yas-minor-mode)
+   (add-hook 'org-mode-hook #'yas-minor-mode)
    :config
    (yas-reload-all))
 
  (use-package rainbow-delimiters
    :init
-   (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
-   (add-hook 'racket-mode-hook 'rainbow-delimiters-mode))
+   (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+   (add-hook 'racket-mode-hook #'rainbow-delimiters-mode))
 
  (use-package dumb-jump
    :init
@@ -490,7 +490,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
                                          (remove 'tabs whitespace-style))))
    (setq gofmt-command "goimports")
    :config
-   (add-hook 'before-save-hook 'gofmt-before-save))
+   (add-hook 'before-save-hook #'gofmt-before-save))
 
  (use-package gotest
    :after go-mode
@@ -589,7 +589,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
         empty))
 (global-whitespace-mode 1)
 
-(setq inhibit-startup-message t)
+(setq inhibit-startup-screen t)
 (setq split-height-threshold 120)
 (setq split-width-threshold 240)
 
@@ -606,7 +606,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 (defun my/flycheck-checker-get (fn checker property)
   (or (alist-get property (alist-get checker my/flycheck-local-cache))
       (funcall fn checker property)))
-(advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
+(advice-add #'flycheck-checker-get :around #'my/flycheck-checker-get)
 (add-hook 'lsp-managed-mode-hook
           (lambda ()
             (when (derived-mode-p 'go-mode)
@@ -626,10 +626,10 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 
-(global-set-key [remap dabbrev-expand] 'hippie-expand)
-(global-set-key (kbd "C-c C-k") 'my/copy-file-path-relative-to-git-root)
-;; (global-set-key (kbd "C-x m") 'eshell)
-;; (global-set-key (kbd "C-x M-m") 'shell)
+(keymap-global-set "<remap> <dabbrev-expand>" #'hippie-expand)
+(keymap-global-set "C-c C-k" #'my/copy-file-path-relative-to-git-root)
+;; (keymap-global-set "C-x m" #'eshell)
+;; (keymap-global-set "C-x M-m" #'shell)
 
 (setq ring-bell-function 'ignore)
 
@@ -648,9 +648,8 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 (setq-default indent-tabs-mode nil)
 (setq backup-directory-alist `(("." . ,(concat user-emacs-directory
                                                "backups"))))
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-
-(global-set-key (kbd "M-z") 'zap-up-to-char)
+(keymap-global-set "C-x C-b" #'ibuffer)
+(keymap-global-set "M-z" #'zap-up-to-char)
 
 ;; init.el end
 ;; --------------------------------------------------------------------------
