@@ -1,5 +1,4 @@
-;;
-;; init.el start
+;; init.el start  -*- lexical-binding: t; -*-
 ;; --------------------------------------------------------------------------
 ;;
 ;; Initialize straight.el
@@ -108,6 +107,20 @@
         select-enable-clipboard 't
         select-enable-primary nil
         interprogram-cut-function #'gui-select-text))
+
+;; To mitigate broken encoding while using default kill-region
+(defun my/copy-region-to-clipboard (beg end)
+  "Copy region to Wayland clipboard using wl-copy."
+  (interactive "r")
+  (let ((coding-system-for-write 'utf-8-unix))
+    (call-process-region
+     beg end
+     "wl-copy"
+     nil nil nil
+     "--type" "text/plain;charset=utf-8"))
+  (message "Copied to clipboard!"))
+
+(global-set-key (kbd "C-c y") #'my/copy-region-to-clipboard)
 
 ;;
 ;; Packages
@@ -456,9 +469,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
   (add-to-list 'project-switch-commands '(ghostel-project-list-buffers "Ghostel buffers") t)
   (add-to-list 'ghostel-eval-cmds '("magit-status-setup-buffer" magit-status-setup-buffer))
   :hook
-  (ghostel-mode . (lambda () (display-line-numbers-mode -1)))
-  :custom
-  (ghostel-shell "/opt/homebrew/bin/fish"))
+  (ghostel-mode . (lambda () (display-line-numbers-mode -1))))
 
 (use-package ghostel-eshell
   :straight nil
@@ -480,6 +491,9 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
   :custom
   (c-ts-mode-indent-offset 4)
   (c-ts-mode-indent-style 'k&r))
+
+(use-package zig-mode
+  :straight t)
 
 (use-package dune
   :straight t)

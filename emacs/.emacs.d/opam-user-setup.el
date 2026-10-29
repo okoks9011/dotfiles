@@ -1,4 +1,4 @@
-;; ## added by OPAM user-setup for emacs / base ## 6bcc7eb91f2a0005a1719b379c22ad99 ## you can edit, but keep this line
+;; ## added by OPAM user-setup for emacs / base ## 6bcc7eb91f2a0005a1719b379c22ad99 ## you can edit, but keep this line  -*- lexical-binding: t; -*-
 (provide 'opam-user-setup)
 
 ;; Base configuration for OPAM
