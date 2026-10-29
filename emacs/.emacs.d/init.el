@@ -39,12 +39,12 @@
 ;;
 ;; Auxiliary functions
 ;; --------------------------------------------------------------------------
-(defvar my/workspace "~/workspace")
+(defvar my/workspace (expand-file-name "~/workspace"))
 
-(defun read-lines (filePath)
+(defun my/read-lines (filePath)
   (with-temp-buffer
     (insert-file-contents filePath)
-    (split-string (buffer-string) "\n" t)))
+    (string-lines (buffer-string) t)))
 
 (defun my/indent-marked-files ()
   (interactive)
@@ -156,9 +156,7 @@
   (setq org-export-with-sub-superscripts nil)
   (let ((agenda-list-file "~/.agenda"))
     (when (file-exists-p agenda-list-file)
-      (setq org-agenda-files (read-lines agenda-list-file))))
-  :config
-  (add-to-list 'org-file-apps '(directory . emacs)))
+      (setq org-agenda-files (my/read-lines agenda-list-file)))))
 
 (use-package magit
   :bind
@@ -190,7 +188,6 @@
 
 (use-package paredit
   :init
-  (add-hook 'clojure-mode-hook 'paredit-mode)
   (add-hook 'emacs-lisp-mode-hook 'paredit-mode)
   (add-hook 'ielm-mode-hook 'paredit-mode)
   (add-hook 'racket-mode-hook 'paredit-mode)
@@ -305,7 +302,8 @@
   lsp)
 
 (use-package lsp-ui
-  :commands lsp-ui-mode)
+  :commands lsp-ui-mode
+  :hook (lsp-mode . lsp-ui-mode))
 
 ;; (use-package  lsp-ivy
 ;;   :commands lsp-ivy-workspace-symbol)
@@ -369,7 +367,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
   :hook
   (ghostel-mode . (lambda () (display-line-numbers-mode -1)))
   :custom
-  (ghostel-shell "/opt/homebrew/bin/fish"))
+  (ghostel-shell (executable-find "fish")))
 
 (use-package ghostel-eshell
   :straight nil
@@ -401,8 +399,8 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 
 (use-package ocaml-eglot
   :hook
-  (tuareg-mode . ocaml-eglot)
-  (ocaml-eglot . eglot-ensure))
+  (tuareg-mode . ocaml-eglot-mode)
+  (ocaml-eglot-mode . eglot-ensure))
 
 (use-package ox-gfm
   :after org)
@@ -442,13 +440,12 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 
  (use-package rainbow-delimiters
    :init
-   (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
    (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
    (add-hook 'racket-mode-hook 'rainbow-delimiters-mode))
 
  (use-package dumb-jump
    :init
-   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate 90))
 
  (use-package dap-mode
    :init
@@ -532,10 +529,6 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 ;;
 ;; Custom Settings
 ;; --------------------------------------------------------------------------
-
-;; `image-type: Invalid image type ‘svg’` hotfix
-;; -----------------------------
-(add-to-list 'image-types 'svg)
 
 ;; UI Settings
 ;; ------------------------------
@@ -624,9 +617,9 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 ;; ------------------------------
 (setq tramp-default-method "ssh")
 
-(setq custom-file (make-temp-file "emacs-custom"))
-
-;; (setq explicit-shell-file-name "/bin/bash")
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file nil 'nomessage))
 
 (setenv "LANG" "en_US.UTF-8")
 
@@ -642,7 +635,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
 
 ;; Specific
 ;; ------------------------------
-(setq custom-el-path "~/.emacs.d/specific")
+(setq custom-el-path (expand-file-name "specific" user-emacs-directory))
 (add-to-list 'load-path custom-el-path)
 (if (file-directory-p custom-el-path)
     (dolist (custom-el (directory-files custom-el-path))
@@ -657,8 +650,6 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
                                                "backups"))))
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-(autoload 'zap-up-to-char "misc"
-  "Kill up to, but not including ARGth occurrence of CHAR." t)
 (global-set-key (kbd "M-z") 'zap-up-to-char)
 
 ;; init.el end
