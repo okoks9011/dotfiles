@@ -302,7 +302,6 @@
   lsp)
 
 (use-package lsp-ui
-  :commands lsp-ui-mode
   :hook (lsp-mode . lsp-ui-mode))
 
 ;; (use-package  lsp-ivy
@@ -418,7 +417,7 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
  (use-package web-mode
    :init
    (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
-   (add-hook 'web-mode-hook #'electric-pair-mode)
+   (add-hook 'web-mode-hook #'electric-pair-local-mode)
    :config
    (setq web-mode-markup-indent-offset 2)
    (setq web-mode-css-indent-offset 2)
@@ -564,6 +563,8 @@ Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."
          (my-char-cnt 160)
          (my-left (max 50
                        (- half-screen-width (* my-char-cnt (frame-char-width)) 50))))
+    ;; Setting initial-frame-alist here might not work as the initial frame is already created.
+    ;; Consider moving this into early-init.el
     (setq initial-frame-alist
           `((top . 10)
             (left . ,my-left)
